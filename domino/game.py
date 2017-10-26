@@ -38,7 +38,7 @@ class DominosGame:
     # we can query if the current game has ended, and a method to get our current
     # possible actions.
 
-    def tentative_move(self, action, curr_player):
+    def tentative_move(self, action):
         """Act as if curr_player is about to put down domino action
 
         Args:
@@ -48,8 +48,19 @@ class DominosGame:
         """
         prev_ends = self.ends
 
-    def move(self, action, curr_player):
-        pass
+    def move(self, action):
+        """Checks if the move is possible and performs it
+        """
+        domino, side = action
+        # We can probably remove this later, but for debugging this might be useful
+        if domino not in self.player_set[self.curr_player]:
+            assert False
+        if domino.fits_unique(self.ends[side]):
+            self.board.append(action)
+            self.ends[side] = domino[0] if self.ends[side] == domino[1] else domino[1]
+            return
+
+        assert False
 
     def is_end_state(self):
         """Checks if we're in an ending state

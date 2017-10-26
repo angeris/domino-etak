@@ -13,7 +13,9 @@ class Domino:
                 self.value[1] == other.value[1])
 
     def fits_unique(self, other_val):
-        return self.value[0] == other_val
+        return (True if other_val is None else 
+                (self.value[0] == other_val or 
+                 self.value[1] == other_val))
 
     def __hash__(self):
         return self.hash
