@@ -8,6 +8,7 @@ class DominosGame:
         self.board = [] # Using list, since it's too small for a deque to matter
         self.domino_set = set()
         self.player_set = [[] for _ in range(4)]
+        self.ends = [None, None]
 
         if player_dominoes is None:
             # Generate usual double six set and randomly assign to players
@@ -26,8 +27,10 @@ class DominosGame:
             if (6,6) in dominos:
                 self.curr_player = player
                 self.initial_player = player
-                break
+                self.ends = [6,6]
+                return
 
+        assert False
 
     # To do RL, we require the following: a tentative_move (state s, action a,
     # current_player) which returns a reward, a given_move such that the move
@@ -35,7 +38,7 @@ class DominosGame:
     # we can query if the current game has ended, and a method to get our current
     # possible actions.
 
-    def tentative_move(self, action):
+    def tentative_move(self, action, curr_player):
         """Act as if curr_player is about to put down domino action
 
         Args:
@@ -46,7 +49,34 @@ class DominosGame:
         pass
 
     def is_end_state(self):
-        pass
+        """Checks if we're in an ending state
+        """
 
+        # Does any player have no more dominoes?
+        if any(not d_list for d_list in self.player_set)):
+            return True
+
+        # Are there no other possible moves?
+        for player in self.player_set:
+            if any((domino.fits_unique(self.ends[0]) or
+                    domino.fits_unique(self.ends[1])) for domino in player):
+                return False
+        
+        return True
+
+        
     
+    def get_score(self, player):
+        """Get the score from `player`'s perspective.
+        """
+        assert 0 <= player <= 3
+        return (self._get_player_score(player) +
+                self._get_player_score((player+2) % 4) - 
+                self._get_player_score((player+1) % 4) - 
+                self._get_player_score((player+3) % 4))
 
+
+    def _get_player_score(self, player):
+        """Get the total number of pips of the current player
+        """
+        return sum(d.pip_val for d in self.player_set[player])

@@ -4,12 +4,16 @@ class Domino:
     def __init__(self, a, b):
         self.value = (a,b) if a<b else (b,a)
         self.hash = hash(self.value)
+        self.pip_val = a+b
 
     def fits(self, other):
         return (self.value[0] == other.value[0] or
                 self.value[0] == other.value[1] or
                 self.value[1] == other.value[0] or
                 self.value[1] == other.value[1])
+
+    def fits_unique(self, other_val):
+        return self.value[0] == other_val
 
     def __hash__(self):
         return self.hash
