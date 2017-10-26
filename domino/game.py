@@ -95,6 +95,9 @@ class DominosGame:
 
         return possible_actions if possible_actions else [None]
 
+    def get_player_hand(self):
+        return list(self.player_set[self.curr_player])
+
     def is_end_state(self):
         """Checks if we're in an ending state
         """
