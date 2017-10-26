@@ -2,19 +2,36 @@
 
 class Domino:
     def __init__(self, a, b):
-        if a < b:
-            self.value = (a,b)
-        else:
-            self.value = (b,a)
-    def __eq__(self, other_domino):
-        return self.value == other_domino.value
-    def __lt__(self, other_domino):
-        return self.value[0] + self.value[1] < other_domino.value[0] + other_domino.value[1] 
-    def __le__(self, other_domino):
-        return self.value[0] + self.value[1] <= other_domino.value[0] + other_domino.value[1] 
-    def __gt__(self, other_domino):
-        return self.value[0] + self.value[1] > other_domino.value[0] + other_domino.value[1] 
-    def __ge__(self, other_domino):
-        return self.value[0] + self.value[1] >= other_domino.value[0] + other_domino.value[1] 
+        self.value = (a,b) if a<b else (b,a)
+        self.hash = hash(self.value)
+
+    def fits(self, other):
+        return (self.value[0] == other.value[0] or
+                self.value[0] == other.value[1] or
+                self.value[1] == other.value[0] or
+                self.value[1] == other.value[1])
+
+    def __hash__(self):
+        return self.hash
+
+    def __eq__(self, other):
+        if other is None:
+            return False
+        if type(other) is tuple:
+            return other == self.value
+        return self.value == other.value
+
+    def __lt__(self, other):
+        return self.value[0] + self.value[1] < other.value[0] + other.value[1] 
+    
+    def __le__(self, other):
+        return self.value[0] + self.value[1] <= other.value[0] + other.value[1] 
+    
+    def __gt__(self, other):
+        return not (self <= other)
+    
+    def __ge__(self, other):
+        return not (self < other)
+    
     def __str__(self):
         return str(self.value)
