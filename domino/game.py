@@ -4,19 +4,20 @@ from domino import Domino
 
 class DominosGame:
 
+    # TODO: Implement arbitrary domino scenarios
     def __init__(self, initial_player=None, player_dominoes=None):
         self.board = []
         self.domino_set = set()
-        self.player_set = [[] for _ in range(4)]
+        self.player_set = [None for _ in range(4)]
         self.ends = [None, None]
 
         if player_dominoes is None:
             # Generate usual double six set and randomly assign to players
-            all_dominoes = [Domino(a, b) for a in range(1, 7) for b in range(1, 7)]
+            all_dominoes = [Domino(a, b) for a in range(1, 7) for b in range(a, 7)]
+            domino_set = set(all_dominoes)
             shuffle(all_dominoes)
             for i in range(4):
-                self.player_set[i] = all_dominoes[i*7:(i+1)*7]
-
+                self.player_set[i] set(all_dominoes[i*7:(i+1)*7])
 
         if initial_player is not None:
             self.curr_player = initial_player
@@ -28,6 +29,7 @@ class DominosGame:
                 self.curr_player = player
                 self.initial_player = player
                 self.ends = [6,6]
+                self.player_set[player].remove(Domino(6,6))
                 return
 
         assert False
@@ -39,7 +41,7 @@ class DominosGame:
     # possible actions.
 
     def tentative_move(self, action):
-        """Act as if curr_player is about to put down domino action
+        """Act as if curr_player is about to put down domino action; return reward
 
         Args:
             action (tuple): A (domino, side_int) pair, where side_int is the side
@@ -47,17 +49,33 @@ class DominosGame:
 
         """
         prev_ends = self.ends
+        prev_player = self.curr_player
+        self.move(action)
+        curr_score = 0 if not self.is_end_state() else self.get_score(prev_player)
+
+        # Undo move
+        self.board.pop()
+        self.ends = prev_ends
+        self.curr_player = prev_player
+        self.player_set[self.curr_player].add(domino)
+        
+        return curr_score
+
 
     def move(self, action):
         """Checks if the move is possible and performs it
         """
         domino, side = action
+        assert 0 <= side <= 1
+
         # We can probably remove this later, but for debugging this might be useful
         if domino not in self.player_set[self.curr_player]:
             assert False
-        if domino.fits_unique(self.ends[side]):
+        if domino.fits_val(self.ends[side]):
             self.board.append(action)
             self.ends[side] = domino[0] if self.ends[side] == domino[1] else domino[1]
+            self.curr_player = (self.curr_player + 1) % 4
+            self.player_set[self.curr_player].remove(domino)
             return
 
         assert False
@@ -65,7 +83,7 @@ class DominosGame:
     def is_end_state(self):
         """Checks if we're in an ending state
         """
-        return self._end_player() or self._end_tie()
+        return self._end_player() or self._end_block()
         
     
     def _end_player(self):
@@ -81,12 +99,12 @@ class DominosGame:
                 return player
         return None
 
-    def _end_tie(self):
-        """Checks if the game ends with a block (given that a player has no more dominoes)
+    def _end_block(self):
+        """Checks if the game ends with a block (given that all players have >= 1 domino)
         """
         for player in self.player_set:
-            if any((domino.fits_unique(self.ends[0]) or
-                    domino.fits_unique(self.ends[1])) for domino in player):
+            if any((domino.fits_val(self.ends[0]) or
+                    domino.fits_val(self.ends[1])) for domino in player):
                 return False
         
         return True
@@ -106,10 +124,10 @@ class DominosGame:
             return 0
 
         return max(self._get_player_score((player+1) % 4) +
-                    self._get_player_score((player+3) % 4) -
-                    self._get_player_score(player) - 
-                    self._get_player_score((player+2) % 4),
-                    0)
+                   self._get_player_score((player+3) % 4) -
+                   self._get_player_score(player) - 
+                   self._get_player_score((player+2) % 4),
+                   0)
 
 
     def _get_player_score(self, player):

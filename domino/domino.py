@@ -12,7 +12,7 @@ class Domino:
                 self.value[1] == other.value[0] or
                 self.value[1] == other.value[1])
 
-    def fits_unique(self, other_val):
+    def fits_val(self, other_val):
         return (True if other_val is None else 
                 (self.value[0] == other_val or 
                  self.value[1] == other_val))
