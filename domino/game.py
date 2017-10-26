@@ -3,7 +3,6 @@ from random import shuffle
 from domino import Domino
 
 class DominosGame:
-
     # TODO: Implement arbitrary domino scenarios
     def __init__(self, initial_player=None, player_dominoes=None):
         self.board = []
@@ -58,13 +57,17 @@ class DominosGame:
         self.ends = prev_ends
         self.curr_player = prev_player
         self.player_set[self.curr_player].add(domino)
-        
+
         return curr_score
 
 
     def move(self, action):
         """Checks if the move is possible and performs it
         """
+        if action is None:
+            self.board.append(action)
+            self.curr_player = (self.curr_player + 1) % 4
+
         domino, side = action
         assert 0 <= side <= 1
 
@@ -79,6 +82,18 @@ class DominosGame:
             return
 
         assert False
+
+    def get_possible_actions(self):
+        """Returns a list of all possible actions
+        """
+        possible_actions = []
+
+        for side in [0,1]:
+            for domino in self.player_set[self.curr_player]:
+                if domino.fits_val(self.ends[side]):
+                    possible_actions.append((domino, side))
+
+        return possible_actions if possible_actions else [None]
 
     def is_end_state(self):
         """Checks if we're in an ending state
@@ -110,7 +125,7 @@ class DominosGame:
         return True
 
     def get_score(self, player):
-        """Get the score from `player`'s perspective.
+        """Get the score from `player`'s perspective, given that the round has ended.
         """
         assert 0 <= player <= 3
 
