@@ -51,12 +51,17 @@ class DominosGame:
     def is_end_state(self):
         """Checks if we're in an ending state
         """
+        return self._end_player() or self._end_tie()
+        
+    
+    def _end_player(self):
+        """Checks if a player has no more dominoes
+        """
+        return any(not d_list for d_list in self.player_set))
 
-        # Does any player have no more dominoes?
-        if any(not d_list for d_list in self.player_set)):
-            return True
-
-        # Are there no other possible moves?
+    def _end_tie(self):
+        """Checks if the game ends with a block (given that a player has no more dominoes)
+        """
         for player in self.player_set:
             if any((domino.fits_unique(self.ends[0]) or
                     domino.fits_unique(self.ends[1])) for domino in player):
@@ -64,12 +69,15 @@ class DominosGame:
         
         return True
 
-        
-    
     def get_score(self, player):
         """Get the score from `player`'s perspective.
         """
         assert 0 <= player <= 3
+
+        if _end_player():
+            return (self._get_player_score((player+1) % 4) + 
+                    self._get_player_score((player+3) % 4))
+
         return (self._get_player_score(player) +
                 self._get_player_score((player+2) % 4) - 
                 self._get_player_score((player+1) % 4) - 
