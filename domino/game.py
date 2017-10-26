@@ -5,7 +5,7 @@ from domino import Domino
 class DominosGame:
 
     def __init__(self, initial_player=None, player_dominoes=None):
-        self.board = [] # Using list, since it's too small for a deque to matter
+        self.board = []
         self.domino_set = set()
         self.player_set = [[] for _ in range(4)]
         self.ends = [None, None]
@@ -46,6 +46,9 @@ class DominosGame:
                 on which the domino should be played.
 
         """
+        prev_ends = self.ends
+
+    def move(self, action, curr_player):
         pass
 
     def is_end_state(self):
@@ -58,6 +61,14 @@ class DominosGame:
         """Checks if a player has no more dominoes
         """
         return any(not d_list for d_list in self.player_set))
+
+    def _which_end_player(self):
+        """Same as _end_player, except returns the player who won or None
+        """
+        for player, d_list in enumerate(self.player_set):
+            if not d_list:
+                return player
+        return None
 
     def _end_tie(self):
         """Checks if the game ends with a block (given that a player has no more dominoes)
@@ -74,14 +85,20 @@ class DominosGame:
         """
         assert 0 <= player <= 3
 
-        if _end_player():
-            return (self._get_player_score((player+1) % 4) + 
-                    self._get_player_score((player+3) % 4))
+        player_end = self._which_end_player()
 
-        return (self._get_player_score(player) +
-                self._get_player_score((player+2) % 4) - 
-                self._get_player_score((player+1) % 4) - 
-                self._get_player_score((player+3) % 4))
+        if player_end is not None:
+            if (player_end == player or 
+                player_end == (player+2) % 4)):
+                return (self._get_player_score((player+1) % 4) + 
+                        self._get_player_score((player+3) % 4))
+            return 0
+
+        return max(self._get_player_score((player+1) % 4) +
+                    self._get_player_score((player+3) % 4) -
+                    self._get_player_score(player) - 
+                    self._get_player_score((player+2) % 4),
+                    0)
 
 
     def _get_player_score(self, player):
