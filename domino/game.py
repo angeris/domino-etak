@@ -67,6 +67,7 @@ class DominosGame:
         if action is None:
             self.board.append(action)
             self.curr_player = (self.curr_player + 1) % 4
+            return
 
         domino, side = action
         assert 0 <= side <= 1
