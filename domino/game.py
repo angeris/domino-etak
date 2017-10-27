@@ -144,11 +144,10 @@ class DominosGame:
                         self._get_player_score((player+3) % 4))
             return 0
 
-        return max(self._get_player_score((player+1) % 4) +
-                   self._get_player_score((player+3) % 4) -
-                   self._get_player_score(player) - 
-                   self._get_player_score((player+2) % 4),
-                   0)
+        player_team_score = self._get_player_score(player) + self._get_player_score((player+2) % 4)
+        opponent_team_score = self._get_player_score((player+1) % 4) + self._get_player_score((player+3) % 4)
+
+        return 0 if opponent_team_score <= player_team_score else opponent_team_score
 
 
     def _get_player_score(self, player):
