@@ -41,3 +41,9 @@ class Domino:
     
     def __str__(self):
         return str(self.value)
+
+    def __repr__(self):
+        return str(self)
+    
+    def __getitem__(self, key):
+        return self.value[key]

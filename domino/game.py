@@ -1,6 +1,6 @@
 from collections import deque
 from random import shuffle
-from domino import Domino
+from domino.domino import Domino
 
 class DominosGame:
     # TODO: Implement arbitrary domino scenarios
@@ -12,11 +12,11 @@ class DominosGame:
 
         if player_dominoes is None:
             # Generate usual double six set and randomly assign to players
-            all_dominoes = [Domino(a, b) for a in range(1, 7) for b in range(a, 7)]
-            domino_set = set(all_dominoes)
+            all_dominoes = [Domino(a, b) for a in range(7) for b in range(a, 7)]
+            self.domino_set = set(all_dominoes)
             shuffle(all_dominoes)
             for i in range(4):
-                self.player_set[i] set(all_dominoes[i*7:(i+1)*7])
+                self.player_set[i] = set(all_dominoes[i*7:(i+1)*7])
 
         if initial_player is not None:
             self.curr_player = initial_player
@@ -25,7 +25,7 @@ class DominosGame:
 
         for player, dominos in enumerate(self.player_set):
             if (6,6) in dominos:
-                self.curr_player = player
+                self.curr_player = (player+1) % 4
                 self.initial_player = player
                 self.ends = [6,6]
                 self.player_set[player].remove(Domino(6,6))
@@ -77,8 +77,8 @@ class DominosGame:
         if domino.fits_val(self.ends[side]):
             self.board.append(action)
             self.ends[side] = domino[0] if self.ends[side] == domino[1] else domino[1]
-            self.curr_player = (self.curr_player + 1) % 4
             self.player_set[self.curr_player].remove(domino)
+            self.curr_player = (self.curr_player + 1) % 4
             return
 
         assert False
@@ -95,8 +95,10 @@ class DominosGame:
 
         return possible_actions if possible_actions else [None]
 
-    def get_player_hand(self):
-        return list(self.player_set[self.curr_player])
+    def get_player_hand(self, player=None):
+        if player is None:
+            return list(self.player_set[self.curr_player])
+        return list(self.player_set[player])
 
     def is_end_state(self):
         """Checks if we're in an ending state
@@ -107,7 +109,7 @@ class DominosGame:
     def _end_player(self):
         """Checks if a player has no more dominoes
         """
-        return any(not d_list for d_list in self.player_set))
+        return any(not d_list for d_list in self.player_set)
 
     def _which_end_player(self):
         """Same as _end_player, except returns the player who won or None
@@ -136,7 +138,7 @@ class DominosGame:
 
         if player_end is not None:
             if (player_end == player or 
-                player_end == (player+2) % 4)):
+                player_end == (player+2) % 4):
                 return (self._get_player_score((player+1) % 4) + 
                         self._get_player_score((player+3) % 4))
             return 0
