@@ -4,7 +4,7 @@ from domino import Domino
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation
-
+from copy import copy
 
 '''
 	QLearning
@@ -34,18 +34,40 @@ class Agent:
 		for i, domino in enumerate(all_dominoes):
 			self.domino_dict[domino] = i
 
-		# self.memory
-		# self.st
+		self.memory = []
 
 
 	def train(self):
 		
-	def selfplay(self, num_rounds):
-		m = []
-		for i in range(num_rounds):
+	def selfplay(self, num_games):
+		for i in range(num_games): # play multiple games
 			game = DominosGame()
-			while(True):
+			is_end_state = game.is_end_state()
+			while(not is_end_state):	# play game
 				poss_actions = game.get_possible_actions()
+				best_a = None
+				best_a_score = float('-inf')
+				if poss_actions[0] is not None:
+					s_hot = state_to_one_hot(game)
+					for action in poss_actions:
+						a_hot = action_to_one_hot(action)
+						curr_score = model.predict(np.r_[s_hot, a_hot])
+						if curr_score > best_a_score:
+							best_a_score = curr_score
+							best_a = action
+				# take best_a and get reward
+				game.move(best_a)
+				is_end_state = game.is_end_state()
+				sa = (copy(game.board), best_a, is_end_state)
+				self.memory.append(sa)
+
+
+
+
+				 
+
+
+
 
 
 	def state_to_one_hot(self, game):
