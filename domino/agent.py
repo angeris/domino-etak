@@ -5,6 +5,7 @@ import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation
 from copy import copy
+from collections import deque
 
 '''
 	QLearning
@@ -34,17 +35,26 @@ class Agent:
 		for i, domino in enumerate(all_dominoes):
 			self.domino_dict[domino] = i
 
-		self.memory = []
+		self.memory = deque(maxlen=10000)
 
 
-	def train(self):
-		
+	def train(self, batch_size=120):
+				
+		for state_action in self.memory:
+
+
+
+
+
 	def selfplay(self, num_games):
+
 		for i in range(num_games): # play multiple games
 			game = DominosGame()
 			is_end_state = game.is_end_state()
 			while(not is_end_state):	# play game
 				poss_actions = game.get_possible_actions()
+				curr_player = game.curr_player
+				hand = game.get_player_hand(curr_player)
 				best_a = None
 				best_a_score = float('-inf')
 				if poss_actions[0] is not None:
@@ -58,17 +68,14 @@ class Agent:
 				# take best_a and get reward
 				game.move(best_a)
 				is_end_state = game.is_end_state()
-				sa = (copy(game.board), best_a, is_end_state)
+				scores = []
+				if is_end_state:
+					for player_idx in range(4):
+						scores.append(game.get_score(player_idx))
+
+				# s', a, is_end, scores, hand, curr_player
+				sa = (copy(game.board), best_a, is_end_state, scores, hand, curr_player)
 				self.memory.append(sa)
-
-
-
-
-				 
-
-
-
-
 
 	def state_to_one_hot(self, game):
 		board_state = game.board
@@ -80,6 +87,10 @@ class Agent:
 				domino_idx = self.domino_dict[domino[0]]
 				state[move_idx*ACTION_SPACE + domino_idx] = 1
 				state[move_idx*ACTION_SPACE + ACTION_SPACE-1] = domino[1]
+
+		hand = game.get_player_hand()
+		for domino in hand:
+			state[ACTION_SPACE*MAX_POSS_MOVES + domino_dict[domino]] = 1
 
 		return state
 
