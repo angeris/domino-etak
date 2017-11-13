@@ -40,9 +40,7 @@ class Agent:
 
 	def train(self, batch_size=120):
 				
-		for state_action in self.memory:
-
-
+		print 'test'
 
 
 
@@ -54,11 +52,11 @@ class Agent:
 			while(not is_end_state):	# play game
 				poss_actions = game.get_possible_actions()
 				curr_player = game.curr_player
-				hand = game.get_player_hand(curr_player)
+				curr_player_hand = game.get_player_hand(curr_player)
 				best_a = None
 				best_a_score = float('-inf')
 				if poss_actions[0] is not None:
-					s_hot = state_to_one_hot(game)
+					s_hot = state_to_one_hot(game.board, hand)
 					for action in poss_actions:
 						a_hot = action_to_one_hot(action)
 						curr_score = model.predict(np.r_[s_hot, a_hot])
@@ -74,11 +72,11 @@ class Agent:
 						scores.append(game.get_score(player_idx))
 
 				# s', a, is_end, scores, hand, curr_player
-				sa = (copy(game.board), best_a, is_end_state, scores, hand, curr_player)
+				sa = (copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player)
 				self.memory.append(sa)
 
-	def state_to_one_hot(self, game):
-		board_state = game.board
+	def state_to_one_hot(self, board_state, hand):
+		# board_state = game.board
 		state = np.zeros(STATE_SPACE)
 		for move_idx, domino in enumerate(board_state):
 			if domino is None:
@@ -88,7 +86,7 @@ class Agent:
 				state[move_idx*ACTION_SPACE + domino_idx] = 1
 				state[move_idx*ACTION_SPACE + ACTION_SPACE-1] = domino[1]
 
-		hand = game.get_player_hand()
+		# hand = game.get_player_hand()
 		for domino in hand:
 			state[ACTION_SPACE*MAX_POSS_MOVES + domino_dict[domino]] = 1
 
