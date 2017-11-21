@@ -19,6 +19,8 @@ class Agent:
 	NUM_LAYERS = 5
 	NUM_OUTPUT_UNITS = 120	# arbitrary
 	STATE_SPACE = ACTION_SPACE*MAX_POSS_MOVES+NUM_DOMINOS
+	GAMMA = 0.9
+	NUM_ITERS = 10
 
 	def __init__(self):
 		model = Sequential()
@@ -38,9 +40,38 @@ class Agent:
 		self.memory = deque(maxlen=10000)
 
 
+	'''
+		Model represents Q values of [s_hot,a_hot] inputs
+		Build training inputs X as list of np array [s_hot, a_hot] tuples and 
+		fit to output Y with updated q values (gamma * Q(sp,ap))
+	'''
+
 	def train(self, batch_size=120):
-				
-		print 'test'
+		X = np.array()
+		Y = np.array()
+		perspective_player = 0 # perspective of player 0 
+		memory = copy(self.memory) # copy if you want multiple iterations
+		sa = None # [s_hot,a_hot]
+		r = None
+		spap = None # [sp_hot, ap_hot]
+		while True:	# scan memory sequentially
+			board, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
+			if curr_player == perspective_player:
+				if sa is None:
+					sa = np.r_[state_to_one_hot(board_state, curr_hand), action_to_one_hot(best_a)]
+					r = scores[perspective_player] if scores is not None else 0
+				else:
+					spap = np.r_[state_to_one_hot(board_state, curr_hand), action_to_one_hot(best_a)]
+					X.append(sa)
+					if is_end_state:	# only use r
+						Y.append(r)
+					else:	# take q into account
+						q = model.predict(spap)
+						Y.append(r+GAMMA*q)
+					sa = spap
+					r = scores[perspective_player] if scores is not None else 0
+
+		self.model.fit(X,Y,batch_size)
 
 
 
@@ -56,10 +87,10 @@ class Agent:
 				best_a = None
 				best_a_score = float('-inf')
 				if poss_actions[0] is not None:
-					s_hot = state_to_one_hot(game.board, hand)
+					s_hot = state_to_one_hot(game.board, curr_player_hand)
 					for action in poss_actions:
 						a_hot = action_to_one_hot(action)
-						curr_score = model.predict(np.r_[s_hot, a_hot])
+						curr_score = self.model.predict(np.r_[s_hot, a_hot])
 						if curr_score > best_a_score:
 							best_a_score = curr_score
 							best_a = action
@@ -75,8 +106,9 @@ class Agent:
 				sa = (copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player)
 				self.memory.append(sa)
 
+	
+
 	def state_to_one_hot(self, board_state, hand):
-		# board_state = game.board
 		state = np.zeros(STATE_SPACE)
 		for move_idx, domino in enumerate(board_state):
 			if domino is None:
