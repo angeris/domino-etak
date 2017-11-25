@@ -1,6 +1,6 @@
 from collections import deque
 from random import shuffle
-from domino.domino import Domino
+from domino import Domino
 
 class DominosGame:
     # TODO: Implement arbitrary domino scenarios

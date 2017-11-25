@@ -27,8 +27,7 @@ class Agent:
         model = Sequential()
         self.model = model
         state_action_space = self.STATE_SPACE + self.ACTION_SPACE
-        print('stateactionspace')
-        print (state_action_space)
+        print('stateactionspace', state_action_space)
         model.add(Dense(units=self.NUM_OUTPUT_UNITS, input_dim=state_action_space, activation='relu'))  # units is arbitrary
         for i in range(self.NUM_LAYERS): 
             model.add(Dense(units=self.NUM_OUTPUT_UNITS, activation='relu'))  
@@ -61,13 +60,13 @@ class Agent:
         spap = None # [sp_hot, ap_hot]
         count = 0
         while memory: # scan memory sequentially
-            print (count)
             count+=1
             board_state, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
-            if curr_player == perspective_player:
+            if curr_player == perspective_player:  # considers actions of perspective player
+                print('memory count', count)
                 if sa is None:  # first time
                     sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                    print(perspective_player)
+                    print('perspective player', perspective_player)
 
                     r = scores[perspective_player] if len(scores) != 0 else 0
                 else:
@@ -81,7 +80,7 @@ class Agent:
                     sa = spap
 
                     r = scores[perspective_player] if len(scores) != 0 else 0
-        print(len(X))
+        print('length of input X', len(X))
         for i,x in enumerate(X):    
             self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
        
@@ -118,8 +117,9 @@ class Agent:
         return action_v
 
     def selfplay(self, num_games):
-
+        print('range games', range(num_games))
         for i in range(num_games): # play multiple games
+            print("Game "+str(i))
             game = DominosGame()
             is_end_state = game.is_end_state()
             while(not is_end_state):    # play game
