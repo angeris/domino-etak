@@ -3,9 +3,11 @@ from agent import Agent
 def main():
     agent = Agent()
 
-    num_games = 10
+    num_games = 100
     agent.selfplay(num_games)
     agent.train()
+    # agent.selfplay(num_games)
+    agent.playGreedy(num_games)
 
 if __name__ == '__main__':
     main()

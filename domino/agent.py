@@ -6,6 +6,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Activation
 from copy import copy
 from collections import deque
+import random
 
 '''
     QLearning
@@ -54,6 +55,7 @@ class Agent:
         X = []
         Y = []
         perspective_player = 0 # perspective of player 0 
+        # loop through all perspectives
         memory = copy(self.memory) # copy if you want multiple iterations
         sa = None # [s_hot,a_hot]
         r = None
@@ -63,7 +65,7 @@ class Agent:
             count+=1
             board_state, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
             if curr_player == perspective_player:  # considers actions of perspective player
-                print('memory count', count)
+                # print('memory count', count)
                 if sa is None:  # first time
                     sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
                     print('perspective player', perspective_player)
@@ -116,39 +118,101 @@ class Agent:
             action_v[-1] = side
         return action_v
 
+    '''
+        Return best action to take given game state
+    '''
+    def getAgentMove(self, game):
+        poss_actions = game.get_possible_actions()
+        curr_player = game.curr_player
+        curr_player_hand = game.get_player_hand(curr_player)
+        best_a = None
+        best_a_score = float('-inf')
+        if poss_actions[0] is not None:
+            s_hot = self.state_to_one_hot(game.board, curr_player_hand)
+            for action in poss_actions:
+                a_hot = self.action_to_one_hot(action)
+                curr_score = self.model.predict(np.r_[s_hot, a_hot].reshape(-1,1).T)
+                if curr_score > best_a_score:
+                    best_a_score = curr_score
+                    best_a = action
+        return best_a
+
+
+    def getGreedyMove(self, game):
+        poss_actions = game.get_possible_actions()
+        best_a = None
+        max_pip_domino = Domino(0,0)
+        if poss_actions[0] is not None:
+            for action in poss_actions:
+                if action[0] >= max_pip_domino:
+                    max_pip_domino = action[0]
+                    best_a = action
+        return best_a
+
+
     def selfplay(self, num_games):
         print('range games', range(num_games))
+        agent0Wins = 0
         for i in range(num_games): # play multiple games
-            print("Game "+str(i))
+            print('Game', i)
             game = DominosGame()
             is_end_state = game.is_end_state()
             while(not is_end_state):    # play game
-                poss_actions = game.get_possible_actions()
                 curr_player = game.curr_player
                 curr_player_hand = game.get_player_hand(curr_player)
-                best_a = None
-                best_a_score = float('-inf')
-                if poss_actions[0] is not None:
-                    s_hot = self.state_to_one_hot(game.board, curr_player_hand)
-                    for action in poss_actions:
-                        a_hot = self.action_to_one_hot(action)
-                        curr_score = self.model.predict(np.r_[s_hot, a_hot].reshape(-1,1).T)
-                        if curr_score > best_a_score:
-                            best_a_score = curr_score
-                            best_a = action
-                # take best_a and get reward
+                best_a = self.getAgentMove(game)
+                game.move(best_a)
+
+                is_end_state = game.is_end_state()
+                scores = []
+                if is_end_state:
+                    for player_idx in range(4):
+                        scores.append(game.get_score(player_idx))
+                    print('scores', scores)
+                    if scores[0] > scores[1]:
+                        agent0Wins +=1
+                    
+                # s', a, is_end, scores, hand, curr_player
+                sa = (copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player)
+                self.memory.append(sa)
+        print('Agent 0 wins', float(agent0Wins)/num_games)
+
+
+    def playGreedy(self, num_games):
+        print('Play agent against Greedy')
+        agentWins = 0
+        for i in range(num_games): # play multiple games
+            print('Game', i)
+            game = DominosGame()
+            is_end_state = game.is_end_state()
+
+            if random.random() < 0.5:   # init starting player
+                greedyTurn = True
+                greedyPlayer = 0
+            else:
+                greedyTurn = False
+                greedyPlayer = 1
+           
+            while(not is_end_state):    # play game
+
+                if greedyTurn:
+                    best_a = self.getGreedyMove(game)
+                else:   # regular agent turn
+                    best_a = self.getAgentMove(game)
                 game.move(best_a)
                 is_end_state = game.is_end_state()
                 scores = []
                 if is_end_state:
                     for player_idx in range(4):
                         scores.append(game.get_score(player_idx))
-                    
-                # s', a, is_end, scores, hand, curr_player
-                sa = (copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player)
-                self.memory.append(sa)
-       
-    
+                    print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
+                    if scores[greedyPlayer] < scores[greedyPlayer+1]:
+                        agentWins +=1
+                greedyTurn = not greedyTurn
+        print('Agent wins', float(agentWins)/num_games)
+
+
+
 
 
 
