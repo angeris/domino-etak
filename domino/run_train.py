@@ -3,7 +3,7 @@ from agent import Agent
 def main():
     agent = Agent()
 
-    num_games = 100
+    num_games = 200
     agent.selfplay(num_games)
     agent.train()
     # agent.selfplay(num_games)
