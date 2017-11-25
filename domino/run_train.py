@@ -6,7 +6,6 @@ def main():
     num_games = 200
     agent.selfplay(num_games)
     agent.train()
-    # agent.selfplay(num_games)
     agent.playGreedy(num_games)
 
 if __name__ == '__main__':

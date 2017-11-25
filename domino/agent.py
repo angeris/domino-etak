@@ -55,33 +55,34 @@ class Agent:
         X = []
         Y = []
         perspective_player = 0 # perspective of player 0 
-        # loop through all perspectives
-        memory = copy(self.memory) # copy if you want multiple iterations
-        sa = None # [s_hot,a_hot]
-        r = None
-        spap = None # [sp_hot, ap_hot]
-        count = 0
-        while memory: # scan memory sequentially
-            count+=1
-            board_state, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
-            if curr_player == perspective_player:  # considers actions of perspective player
-                # print('memory count', count)
-                if sa is None:  # first time
-                    sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                    print('perspective player', perspective_player)
+        for perspective_player in range(4):
+            # loop through all perspectives
+            memory = copy(self.memory) # copy if you want multiple iterations
+            sa = None # [s_hot,a_hot]
+            r = None
+            spap = None # [sp_hot, ap_hot]
+            count = 0
+            while memory: # scan memory sequentially
+                count+=1
+                board_state, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
+                if curr_player == perspective_player:  # considers actions of perspective player
+                    # print('memory count', count)
+                    if sa is None:  # first time
+                        sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
+                        print('perspective player', perspective_player)
 
-                    r = scores[perspective_player] if len(scores) != 0 else 0
-                else:
-                    spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)].reshape(-1,1).T 
-                    X.append(sa)
-                    if is_end_state:    # only use r
-                        Y.append(r)
-                    else:   # take q into account
-                        q = self.model.predict(spap)
-                        Y.append(r+self.GAMMA*q)
-                    sa = spap
+                        r = scores[perspective_player] if len(scores) != 0 else 0
+                    else:
+                        spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)].reshape(-1,1).T 
+                        X.append(sa)
+                        if is_end_state:    # only use r
+                            Y.append(r)
+                        else:   # take q into account
+                            q = self.model.predict(spap)
+                            Y.append(r+self.GAMMA*q)
+                        sa = spap
 
-                    r = scores[perspective_player] if len(scores) != 0 else 0
+                        r = scores[perspective_player] if len(scores) != 0 else 0
         print('length of input X', len(X))
         for i,x in enumerate(X):    
             self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
