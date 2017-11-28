@@ -1,9 +1,9 @@
-
 from game import DominosGame
 from domino import Domino
 import numpy as np
 from keras.models import Sequential
 from keras.layers import Dense, Activation
+from keras.optimizers import SGD
 from copy import copy
 from collections import deque
 import random
@@ -20,22 +20,21 @@ class Agent:
         self.ACTION_SPACE = 30
         self.NUM_DOMINOS = 28
         self.NUM_LAYERS = 5
-        self.NUM_OUTPUT_UNITS = 1  # arbitrary
+        self.NUM_OUTPUT_UNITS = 500
         self.STATE_SPACE = self.ACTION_SPACE*self.MAX_POSS_MOVES+self.NUM_DOMINOS
-        self.GAMMA = 0.9
+        self.GAMMA = 0.99
         self.NUM_ITERS = 10
-        self.NUM_EPOCHS = 20
+        self.NUM_EPOCHS = 5
 
         model = Sequential()
         self.model = model
         state_action_space = self.STATE_SPACE + self.ACTION_SPACE
-        print('stateactionspace', state_action_space)
+        # print('stateactionspace', state_action_space)
         model.add(Dense(units=self.NUM_OUTPUT_UNITS, input_dim=state_action_space, activation='relu'))  # units is arbitrary
         for i in range(self.NUM_LAYERS): 
             model.add(Dense(units=self.NUM_OUTPUT_UNITS, activation='relu'))  
-        model.add(Activation('linear')) # add additional layer for neg values
-        model.compile(loss='mse',
-                  optimizer='adam')
+        model.add(Dense(units=1, activation='linear'))
+        model.compile(loss='mse', optimizer='adam')
         self.model = model
         self.domino_dict = {}
 
@@ -58,19 +57,16 @@ class Agent:
         perspective_player = 0 # perspective of player 0 
         for perspective_player in range(4):
             # loop through all perspectives
-            memory = copy(self.memory) # copy if you want multiple iterations
             sa = None # [s_hot,a_hot]
             r = None
             spap = None # [sp_hot, ap_hot]
-            count = 0
-            while memory: # scan memory sequentially
-                count+=1
-                board_state, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
+            for curr in self.memory: # scan memory sequentially
+                board_state, best_a, is_end_state, scores, curr_hand, curr_player = curr
                 if curr_player == perspective_player:  # considers actions of perspective player
                     # print('memory count', count)
                     if sa is None:  # first time
                         sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                        print('perspective player', perspective_player)
+                        # print('perspective player', perspective_player)
 
                         r = scores[perspective_player] if len(scores) != 0 else 0
                     else:
@@ -90,10 +86,10 @@ class Agent:
         
         X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
         del X
-        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS)
+        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
        
 
-    def save_curr_network(filename, curr_path=''):
+    def save_curr_network(self, filename, curr_path=''):
         if not filename.endswith('.h5'):
             filename += '.h5'
         self.model.save(os.path.join(curr_path, filename))
@@ -162,10 +158,10 @@ class Agent:
 
 
     def selfplay(self, num_games):
-        print('range games', range(num_games))
+        # print('range games', range(num_games))
         agent0Wins = 0
         for i in range(num_games): # play multiple games
-            print('Game', i)
+            # print('Game', i)
             game = DominosGame()
             is_end_state = game.is_end_state()
             while(not is_end_state):    # play game
@@ -179,8 +175,8 @@ class Agent:
                 if is_end_state:
                     for player_idx in range(4):
                         scores.append(game.get_score(player_idx))
-                    print('scores', scores)
-                    if scores[0] > scores[1]:
+                    # print('scores', scores)
+                    if scores[0] >= scores[1]:
                         agent0Wins +=1
                     
                 # s', a, is_end, scores, hand, curr_player
@@ -191,11 +187,10 @@ class Agent:
 
     def play_greedy(self, num_games):
         print('Play agent against Greedy')
-        agentWins = 0
+        agent_total = 0
+        greedy_total = 0
         for i in range(num_games): # play multiple games
             print('Game', i)
-            game = DominosGame()
-            is_end_state = game.is_end_state()
 
             if random.random() < 0.5:   # init starting player
                 greedyTurn = True
@@ -203,24 +198,27 @@ class Agent:
             else:
                 greedyTurn = False
                 greedyPlayer = 1
+
+            game = DominosGame(0)
+            is_end_state = game.is_end_state()
            
             while(not is_end_state):    # play game
-
                 if greedyTurn:
                     best_a = self.getGreedyMove(game)
                 else:   # regular agent turn
                     best_a = self.getAgentMove(game)
                 game.move(best_a)
                 is_end_state = game.is_end_state()
-                scores = []
                 if is_end_state:
+                    scores = []
                     for player_idx in range(4):
                         scores.append(game.get_score(player_idx))
                     print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
-                    if scores[greedyPlayer] < scores[greedyPlayer+1]:
-                        agentWins +=1
+                    greedy_total += scores[greedyPlayer]
+                    agent_total += scores[greedyPlayer+1]
+
                 greedyTurn = not greedyTurn
-        print('Agent wins', float(agentWins)/num_games)
+        print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
 
 
 

@@ -104,3 +104,6 @@ ENV/
 .DS_Store
 venv/
 .vscode
+domino/output.txt
+domino/output.h5
+domino/train_output.txt

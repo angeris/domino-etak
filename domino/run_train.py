@@ -1,7 +1,7 @@
 from agent import Agent
 import time
 
-NUM_PLAYS = 1
+NUM_PLAYS = 100
 
 def main():
     agent = Agent()
@@ -14,12 +14,16 @@ def main():
         agent.selfplay(num_games)
         agent.train()
         total_games += num_games
+        agent.play_greedy(2*num_games)
+        if (curr_iter + 1)%100==0:
+            agent.save_curr_network('iter_{}'.format(curr_iter+1))
 
     end = time.time()
+    agent.save_curr_network('output')
 
 
     print('time to train', end - start)
-    agent.play_greedy(num_games)
+    agent.play_greedy(2*num_games)
 
 if __name__ == '__main__':
     main()
