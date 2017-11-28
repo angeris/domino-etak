@@ -1,4 +1,4 @@
-from domino.game import DominosGame
+from ..domino.game import DominosGame
 from random import seed, choice
 
 # seed(1) # Set seed for now

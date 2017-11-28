@@ -1,4 +1,3 @@
-
 from game import DominosGame
 from domino import Domino
 import numpy as np
@@ -12,7 +11,6 @@ from collections import deque
 '''
 
 class Agent:
-
     MAX_POSS_MOVES = 60
     ACTION_SPACE = 30
     NUM_DOMINOS = 28
@@ -50,12 +48,11 @@ class Agent:
         X = np.array()
         Y = np.array()
         perspective_player = 0 # perspective of player 0 
-        memory = copy(self.memory) # copy if you want multiple iterations
         sa = None # [s_hot,a_hot]
         r = None
         spap = None # [sp_hot, ap_hot]
-        while memory: # scan memory sequentially
-            board, best_a, is_end_state, scores, curr_hand, curr_player = memory.pop()
+        for event in self.memory: # scan memory sequentially
+            board, best_a, is_end_state, scores, curr_hand, curr_player = event
             if curr_player == perspective_player:
                 if sa is None:  # first time
                     sa = np.r_[state_to_one_hot(board_state, curr_hand), action_to_one_hot(best_a)]
@@ -76,7 +73,6 @@ class Agent:
 
 
     def selfplay(self, num_games):
-
         for i in range(num_games): # play multiple games
             game = DominosGame()
             is_end_state = game.is_end_state()

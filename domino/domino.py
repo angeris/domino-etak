@@ -28,10 +28,10 @@ class Domino:
         return self.value == other.value
 
     def __lt__(self, other):
-        return self.value[0] + self.value[1] < other.value[0] + other.value[1] 
+        return self.pip_val < other.pip_val
     
     def __le__(self, other):
-        return self.value[0] + self.value[1] <= other.value[0] + other.value[1] 
+        return self.pip_val <= other.pip_val 
     
     def __gt__(self, other):
         return not (self <= other)
