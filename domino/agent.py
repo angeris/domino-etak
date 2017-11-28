@@ -7,6 +7,7 @@ from keras.layers import Dense, Activation
 from copy import copy
 from collections import deque
 import random
+import os
 
 '''
     QLearning
@@ -73,20 +74,29 @@ class Agent:
 
                         r = scores[perspective_player] if len(scores) != 0 else 0
                     else:
-                        spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)].reshape(-1,1).T 
+                        spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
                         X.append(sa)
                         if is_end_state:    # only use r
                             Y.append(r)
                         else:   # take q into account
-                            q = self.model.predict(spap)
+                            q = self.model.predict(spap[np.newaxis, :])
                             Y.append(r+self.GAMMA*q)
                         sa = spap
 
                         r = scores[perspective_player] if len(scores) != 0 else 0
-        print('length of input X', len(X))
-        for i,x in enumerate(X):    
-            self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
+
+        # for i,x in enumerate(X):
+        #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
+        
+        X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
+        del X
+        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS)
        
+
+    def save_curr_network(filename, curr_path=''):
+        if not filename.endswith('.h5'):
+            filename += '.h5'
+        self.model.save(os.path.join(curr_path, filename))
 
     def state_to_one_hot(self, board_state, hand):
         state = np.zeros(self.STATE_SPACE)
@@ -179,7 +189,7 @@ class Agent:
         print('Agent 0 wins', float(agent0Wins)/num_games)
 
 
-    def playGreedy(self, num_games):
+    def play_greedy(self, num_games):
         print('Play agent against Greedy')
         agentWins = 0
         for i in range(num_games): # play multiple games
