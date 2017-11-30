@@ -1,7 +1,7 @@
 from agent import Agent
 import time
 
-NUM_PLAYS = 100
+NUM_PLAYS = 10
 
 def main():
     agent = Agent()

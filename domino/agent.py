@@ -61,7 +61,7 @@ class Agent:
             r = None
             spap = None # [sp_hot, ap_hot]
             for curr in self.memory: # scan memory sequentially
-                board_state, best_a, is_end_state, scores, curr_hand, curr_player = curr
+                [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
                 if curr_player == perspective_player:  # considers actions of perspective player
                     # print('memory count', count)
                     if sa is None:  # first time
@@ -89,6 +89,49 @@ class Agent:
         del X
         self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
        
+
+    '''
+        Sarsa lambda version
+    '''
+    def train_sarsa_lambda(self, batch_size=120):
+        X = []
+        Y = []
+        perspective_player = 0 # perspective of player 0 
+        for perspective_player in range(4):
+            # loop through all perspectives
+            sa = None # [s_hot,a_hot]
+            r = None
+            spap = None # [sp_hot, ap_hot]
+            for curr in self.memory: # scan memory sequentially
+                [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
+                if curr_player == perspective_player:  # considers actions of perspective player
+                    # print('memory count', count)
+                    if sa is None:  # first time
+                        sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
+                        # print('perspective player', perspective_player)
+
+                        r = scores[perspective_player] if len(scores) != 0 else 0
+                    else:
+                        spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
+                        X.append(sa)
+                        if is_end_state:    # only use r
+                            Y.append(r)
+                            sa = None
+                        else:   # take q into account
+                            q = self.model.predict(spap[np.newaxis, :])
+                            Y.append(r+self.GAMMA*q)
+                            sa = spap
+
+                        r = scores[perspective_player] if len(scores) != 0 else 0
+
+        # for i,x in enumerate(X):
+        #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
+        
+        X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
+        del X
+        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
+       
+
 
     def save_curr_network(self, filename, curr_path=''):
         if not filename.endswith('.h5'):
@@ -177,11 +220,19 @@ class Agent:
                     for player_idx in range(4):
                         scores.append(game.get_score(player_idx))
                     # print('scores', scores)
+                    # back propogate scores and end state
+                    self.memory[-1][3] = scores
+                    self.memory[-1][2] = True
+                    self.memory[-2][3] = scores
+                    self.memory[-2][2] = True
+                    self.memory[-3][3] = scores
+                    self.memory[-3][2] = True
+
                     if scores[0] >= scores[1]:
                         agent0Wins +=1
                     
                 # s', a, is_end, scores, hand, curr_player
-                sa = (copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player)
+                sa = [copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player]
                 self.memory.append(sa)
         print('Agent 0 wins', float(agent0Wins)/num_games)
 
@@ -191,7 +242,7 @@ class Agent:
         agent_total = 0
         greedy_total = 0
         for i in range(num_games): # play multiple games
-            print('Game', i)
+            # print('Game', i)
 
             if random.random() < 0.5:   # init starting player
                 greedyTurn = True
