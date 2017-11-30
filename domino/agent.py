@@ -229,7 +229,7 @@ class Agent:
                     self.memory[-2][2] = True
                     self.memory[-3][3] = scores
                     self.memory[-3][2] = True
-                    # print(self.memory)
+
                     if scores[0] >= scores[1]:
                         agent0Wins +=1
                     
