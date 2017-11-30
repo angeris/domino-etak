@@ -211,6 +211,7 @@ class Agent:
             game = DominosGame()
             is_end_state = game.is_end_state()
             while(not is_end_state):    # play game
+                board = copy(game.board)
                 curr_player = game.curr_player
                 curr_player_hand = game.get_player_hand(curr_player)
                 best_a = self.getAgentMove(game)
@@ -234,7 +235,7 @@ class Agent:
                         agent0Wins +=1
                     
                 # s', a, is_end, scores, hand, curr_player
-                sa = [copy(game.board), best_a, is_end_state, scores, curr_player_hand, curr_player]
+                sa = [board, best_a, is_end_state, scores, curr_player_hand, curr_player]
                 self.memory.append(sa)
         print('Agent 0 wins', float(agent0Wins)/num_games)
 
@@ -275,7 +276,7 @@ class Agent:
         print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
         self.won_games += agent_total > greedy_total
-        print('Current proportion of games won : {}'.format(self.won_games/self.total_games))
+        print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
 
 
 
