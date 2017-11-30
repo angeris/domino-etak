@@ -74,10 +74,11 @@ class Agent:
                         X.append(sa)
                         if is_end_state:    # only use r
                             Y.append(r)
+                            sa = None
                         else:   # take q into account
                             q = self.model.predict(spap[np.newaxis, :])
                             Y.append(r+self.GAMMA*q)
-                        sa = spap
+                            sa = spap
 
                         r = scores[perspective_player] if len(scores) != 0 else 0
 
