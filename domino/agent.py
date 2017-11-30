@@ -25,6 +25,8 @@ class Agent:
         self.GAMMA = 0.99
         self.NUM_ITERS = 10
         self.NUM_EPOCHS = 5
+        self.total_games = 0
+        self.won_games = 0
 
         model = Sequential()
         self.model = model
@@ -268,6 +270,9 @@ class Agent:
                     print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
                     greedy_total += scores[greedyPlayer]
                     agent_total += scores[greedyPlayer+1]
+                    self.total_games += 1
+                    self.won_games += agent_total > greedy_total
+                    print('Current proportion of games won : {}'.format(self.won_games/self.total_games))
 
                 greedyTurn = not greedyTurn
         print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
