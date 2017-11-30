@@ -14,18 +14,16 @@ import os
 '''
 
 class Agent:
+    MAX_POSS_MOVES = 60
+    ACTION_SPACE = 30
+    NUM_DOMINOS = 28
+    NUM_LAYERS = 5
+    NUM_OUTPUT_UNITS = 120  # arbitrary
+    STATE_SPACE = ACTION_SPACE*MAX_POSS_MOVES+NUM_DOMINOS
+    GAMMA = 0.99
+    NUM_ITERS = 10
 
     def __init__(self):
-        self.MAX_POSS_MOVES = 60
-        self.ACTION_SPACE = 30
-        self.NUM_DOMINOS = 28
-        self.NUM_LAYERS = 5
-        self.NUM_OUTPUT_UNITS = 500
-        self.STATE_SPACE = self.ACTION_SPACE*self.MAX_POSS_MOVES+self.NUM_DOMINOS
-        self.GAMMA = 0.99
-        self.NUM_ITERS = 10
-        self.NUM_EPOCHS = 5
-
         model = Sequential()
         self.model = model
         state_action_space = self.STATE_SPACE + self.ACTION_SPACE
