@@ -223,6 +223,8 @@ class Agent:
                         scores.append(game.get_score(player_idx))
                     # print('scores', scores)
                     # back propogate scores and end state
+                    self.memory[-1][3] = scores
+                    self.memory[-1][2] = True
                     self.memory[-2][3] = scores
                     self.memory[-2][2] = True
                     self.memory[-3][3] = scores
