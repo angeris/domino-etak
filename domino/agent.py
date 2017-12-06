@@ -31,6 +31,7 @@ class Agent:
         self.won_games = 0
         self.all_games = []
         self.epsilon = 1.0
+        self.EPSILON_THRESHOLD = 10
 
         model = Sequential()
         self.model = model
@@ -49,7 +50,6 @@ class Agent:
             self.domino_dict[domino] = i
 
         # [board before move, best_a to take, is_end_state after move, scores after move, curr_player_hand before move, curr_player to move]
-
         self.memory = deque(maxlen=10000)
 
 
@@ -63,19 +63,15 @@ class Agent:
         X = []
         Y = []
         perspective_player = 0 # perspective of player 0 
-        for perspective_player in range(4):
-            # loop through all perspectives
+        for perspective_player in range(4): # loop through all perspectives
             sa = None # [s_hot,a_hot]
             r = None
             spap = None # [sp_hot, ap_hot]
             for curr in self.memory: # scan memory sequentially
                 [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
                 if curr_player == perspective_player:  # considers actions of perspective player
-                    # print('memory count', count)
                     if sa is None:  # first time
                         sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                        # print('perspective player', perspective_player)
-
                         r = scores[perspective_player] if scores else 0
                     else:
                         spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
@@ -94,8 +90,7 @@ class Agent:
                             q = self.model.predict(spap[np.newaxis, :])
                             Y.append(r+self.GAMMA*q)
                             sa = spap
-
-                        r = scores[perspective_player] if scores else 0
+                            r = scores[perspective_player] if scores else 0
 
         X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
         del X
@@ -142,15 +137,13 @@ class Agent:
         Return best action to take given game state
         Epsilon greedy
     '''
-    def getAgentMove(self, game, num_played):
+    def getAgentMove(self, game, total_played):
         poss_actions = game.get_possible_actions()
         curr_player = game.curr_player
         curr_player_hand = game.get_player_hand(curr_player)
         best_a = None
         best_a_score = float('-inf')
         if poss_actions[0] is not None:
-            if num_played % 20 == 0:
-                self.epsilon = self.epsilon / 2
             if random.random() < self.epsilon:
                 best_a = random.choice(poss_actions)
             else:
@@ -267,6 +260,8 @@ class Agent:
         
         print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
+        if self.total_games % self.EPSILON_THRESHOLD == 0:
+            self.epsilon *= 0.5
         self.won_games += agent_total > greedy_total
         self.all_games.append(agent_total > greedy_total)
         if len(self.all_games) % 100 == 0:
@@ -280,12 +275,12 @@ class Agent:
         Save agent to memory as play against greedy and print states
     '''
     def selfplay_greedy(self, num_games):
-        print('Play agent against Greedy')
+        print('Play agent against Greedy + Save to memory')
+        print('Epsilon', self.epsilon)
         agent_total = 0
         greedy_total = 0
         agent_won_games = 0
         for i in range(num_games): # play multiple games
-            # print('Game', i)
             if random.random() < 0.5:   # init starting player
                 greedyTurn = True
                 greedyPlayer = 0
@@ -320,7 +315,7 @@ class Agent:
                     # print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
                     greedy_total += scores[greedyPlayer]
                     agent_total += scores[greedyPlayer+1]
-                    # agent_won_games += agent_total > greedy_total
+                    agent_won_games += agent_total > greedy_total
 
                 # save agent's plays to memory
                 if not greedyTurn:
@@ -329,8 +324,10 @@ class Agent:
 
                 greedyTurn = not greedyTurn
         
-        print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
+        print('Agent pip total: {} | Greedy pip total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
+        if self.total_games % self.EPSILON_THRESHOLD == 0:
+            self.epsilon *= 0.5
         self.won_games += agent_total > greedy_total
         self.all_games.append(agent_total > greedy_total)
         if len(self.all_games) % 100 == 0:
@@ -338,15 +335,7 @@ class Agent:
         last_idx = min(100, len(self.all_games))
         print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
         print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
-
-
-        # print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
-        # print('Agent against Greedy win proportion: ', float(agent_won_games/(num_games)))
-
-
-
-
-
+        print('Proportion of indiv games won:', agent_won_games/num_games)
 
 
         
