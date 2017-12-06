@@ -30,7 +30,7 @@ class Agent:
         self.total_games = 0
         self.won_games = 0
         self.all_games = []
-        self.epsilon = 1
+        self.epsilon = 1.0
 
         model = Sequential()
         self.model = model
@@ -185,7 +185,7 @@ class Agent:
         best_a = None
         best_a_score = float('-inf')
         if poss_actions[0] is not None:
-            if num_played % 10 == 0:
+            if num_played % 100 == 0:
                 self.epsilon = self.epsilon / 2
             if random.random() < self.epsilon:
                 best_a = random.choice(poss_actions)
