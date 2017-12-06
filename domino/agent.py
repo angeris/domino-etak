@@ -189,7 +189,7 @@ class Agent:
         best_a = None
         best_a_score = float('-inf')
         if poss_actions[0] is not None:
-            if num_played % 1 == 0:
+            if num_played % 20 == 0:
                 self.epsilon = self.epsilon / 2
             if random.random() < self.epsilon:
                 best_a = random.choice(poss_actions)

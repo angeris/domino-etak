@@ -18,10 +18,10 @@ def main():
     for curr_iter in range(NUM_PLAYS):
         print('Curr_iter', curr_iter)
         # agent.selfplay(num_games)
-        agent.selfplay_greedy(num_games)    # adds agents moves to memory
+        agent.selfplay(num_games)    # adds agents moves to memory
         agent.train()                       # trains on self.memory
         total_games += num_games
-        # agent.play_greedy(2*num_games)    # testing against greedy
+        agent.play_greedy(2*num_games)    # testing against greedy
         if (curr_iter + 1)%200==0:
             agent.save_curr_network('iter_{}'.format(curr_iter+1))
             print('total number of games played so far : {}'.format(total_games))
