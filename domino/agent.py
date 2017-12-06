@@ -74,11 +74,13 @@ class Agent:
                         sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
                         # print('perspective player', perspective_player)
 
-                        r = scores[perspective_player] if len(scores) != 0 else 0
+                        r = scores[perspective_player] if scores else 0
                     else:
                         spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
                         X.append(sa)
                         if is_end_state:    # only use r
+                            assert scores
+                            r = scores[perspective_player] if scores else 0
                             Y.append(r)
                             sa = None
                         else:   # take q into account
@@ -86,7 +88,7 @@ class Agent:
                             Y.append(r+self.GAMMA*q)
                             sa = spap
 
-                        r = scores[perspective_player] if len(scores) != 0 else 0
+                        r = scores[perspective_player] if scores else 0
 
         # for i,x in enumerate(X):
         #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
@@ -121,6 +123,7 @@ class Agent:
                         spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
                         X.append(sa)
                         if is_end_state:    # only use r
+                            
                             Y.append(r)
                             sa = None
                         else:   # take q into account
@@ -186,7 +189,7 @@ class Agent:
         best_a = None
         best_a_score = float('-inf')
         if poss_actions[0] is not None:
-            if num_played % 100 == 0:
+            if num_played % 1 == 0:
                 self.epsilon = self.epsilon / 2
             if random.random() < self.epsilon:
                 best_a = random.choice(poss_actions)
