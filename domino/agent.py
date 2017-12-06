@@ -177,6 +177,7 @@ class Agent:
 
     '''
         Return best action to take given game state
+        Epsilon greedy
     '''
     def getAgentMove(self, game, num_played):
         poss_actions = game.get_possible_actions()
@@ -201,7 +202,6 @@ class Agent:
 
 
     def getGreedyMove(self, game):
-
         poss_actions = game.get_possible_actions()
         best_a = None
         max_pip_domino = Domino(0,0)
@@ -213,6 +213,17 @@ class Agent:
         return best_a
 
 
+    def getRandomMove(self, game):
+        poss_actions = game.get_possible_actions()
+        best_a = None
+        max_pip_domino = Domino(0,0)
+        if poss_actions[0] is not None:
+            best_a = random.choice(poss_actions)
+        return best_a
+
+    '''
+        Save to memory agent vs agent
+    '''
     def selfplay(self, num_games):
         # print('range games', range(num_games))
         agent0Wins = 0
@@ -250,7 +261,11 @@ class Agent:
         print('Agent 0 wins', float(agent0Wins)/num_games)
 
 
-    def play_greedy(self, num_games):
+    '''
+        Test against greedy (shows stats no save to memory)
+        Can also test greedy against random by passing random_flag = True
+    '''
+    def play_greedy(self, num_games, random_flag=False):
         print('Play agent against Greedy')
         agent_total = 0
         greedy_total = 0
@@ -271,7 +286,10 @@ class Agent:
                 if greedyTurn:
                     best_a = self.getGreedyMove(game)
                 else:   # regular agent turn
-                    best_a = self.getAgentMove(game, self.total_games)
+                    if random_flag:
+                        best_a = self.getRandomMove(game)
+                    else:
+                        best_a = self.getAgentMove(game, self.total_games)
                 game.move(best_a)
                 is_end_state = game.is_end_state()
                 if is_end_state:
@@ -283,6 +301,7 @@ class Agent:
                     agent_total += scores[greedyPlayer+1]
 
                 greedyTurn = not greedyTurn
+        
         print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
         self.won_games += agent_total > greedy_total
@@ -294,6 +313,9 @@ class Agent:
         print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
 
 
+    '''
+        Save agent to memory as play against greedy and print stats
+    '''
     def selfplay_greedy(self, num_games):
         print('Play agent against Greedy')
         agent_total = 0
