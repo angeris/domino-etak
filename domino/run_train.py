@@ -1,7 +1,7 @@
 from agent import Agent
 import time
 
-NUM_PLAYS = 20000
+NUM_PLAYS = 200
 
 def main():
 
@@ -19,7 +19,7 @@ def main():
         print('Curr_iter', curr_iter)
         # agent.selfplay(num_games)
         agent.selfplay_greedy(num_games)    # adds agents moves to memory
-        agent.train()                       # trains on self.memory
+        agent.q_train()                       # trains on self.memory
         total_games += num_games
         # agent.play_greedy(2*num_games)    # testing against greedy
         if (curr_iter + 1)%200==0:

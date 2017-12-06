@@ -96,6 +96,47 @@ class Agent:
         self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
        
 
+    def q_train(self, batch_size=120):
+        X = []
+        Y = []
+        perspective_player = 0 # perspective of player 0 
+        for perspective_player in range(4):
+            # loop through all perspectives
+            sa = None # [s_hot,a_hot]
+            r = None
+            sp = None # [sp_hot, ap_hot]
+            for curr in self.memory: # scan memory sequentially
+                [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
+                if curr_player == perspective_player:  # considers actions of perspective player
+                    # print('memory count', count)
+                    if sa is None:  # first time
+                        sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
+                        # print('perspective player', perspective_player)
+
+                        r = scores[perspective_player] if len(scores) != 0 else 0
+                    else:
+                        sp = self.state_to_one_hot(board_state, curr_hand)
+                        X.append(sa)
+                        if is_end_state:    # only use r
+                            Y.append(r)
+                            sa = None
+                        else:   # take q into account
+                            # find max q(sp, a) for a in poss action from sp
+
+                            q = self.model.predict(spap[np.newaxis, :])
+                            Y.append(r+self.GAMMA*q)
+                            sa = spap
+
+                        r = scores[perspective_player] if len(scores) != 0 else 0
+
+        # for i,x in enumerate(X):
+        #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
+        
+        X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
+        del X
+        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
+       
+
     '''
         Sarsa lambda version
     '''
@@ -186,7 +227,7 @@ class Agent:
         best_a = None
         best_a_score = float('-inf')
         if poss_actions[0] is not None:
-            if num_played % 100 == 0:
+            if num_played % 10 == 0:
                 self.epsilon = self.epsilon / 2
             if random.random() < self.epsilon:
                 best_a = random.choice(poss_actions)
