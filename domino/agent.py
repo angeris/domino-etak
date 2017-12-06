@@ -8,6 +8,7 @@ from copy import copy
 from collections import deque
 import random
 import os
+import pickle as pk
 
 '''
     QLearning
@@ -19,7 +20,7 @@ class Agent:
         self.MAX_POSS_MOVES = 60
         self.ACTION_SPACE = 30
         self.NUM_DOMINOS = 28
-        self.NUM_LAYERS = 5
+        self.NUM_LAYERS = 8 
         self.NUM_OUTPUT_UNITS = 500
         self.STATE_SPACE = self.ACTION_SPACE*self.MAX_POSS_MOVES+self.NUM_DOMINOS
         self.GAMMA = 0.99
@@ -27,6 +28,7 @@ class Agent:
         self.NUM_EPOCHS = 5
         self.total_games = 0
         self.won_games = 0
+        self.all_games = []
 
         model = Sequential()
         self.model = model
@@ -131,7 +133,7 @@ class Agent:
         
         X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
         del X
-        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
+        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=0)
        
 
 
@@ -276,7 +278,12 @@ class Agent:
         print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
         self.won_games += agent_total > greedy_total
+        self.all_games.append(agent_total > greedy_total)
+        if len(self.all_games) % 100 == 0:
+            pk.dump({'all_games':self.all_games}, open('all_games_{}'.format(len(self.all_games)), 'wb'))
+        last_idx = min(100, len(self.all_games))
         print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
+        print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
 
 
 

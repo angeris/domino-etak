@@ -1,12 +1,12 @@
 from agent import Agent
 import time
 
-NUM_PLAYS = 10
+NUM_PLAYS = 20000
 
 def main():
     agent = Agent()
 
-    num_games = 50
+    num_games = 10
     total_games = 0
     
     start = time.time()
@@ -15,8 +15,9 @@ def main():
         agent.train()
         total_games += num_games
         agent.play_greedy(2*num_games)
-        if (curr_iter + 1)%100==0:
+        if (curr_iter + 1)%200==0:
             agent.save_curr_network('iter_{}'.format(curr_iter+1))
+            print('total number of games played so far : {}'.format(total_games))
 
     end = time.time()
     agent.save_curr_network('output')
