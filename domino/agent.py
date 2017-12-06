@@ -48,6 +48,8 @@ class Agent:
         for i, domino in enumerate(all_dominoes):
             self.domino_dict[domino] = i
 
+        # [board before move, best_a to take, is_end_state after move, scores after move, curr_player_hand before move, curr_player to move]
+
         self.memory = deque(maxlen=10000)
 
 
@@ -79,10 +81,15 @@ class Agent:
                         spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
                         X.append(sa)
                         if is_end_state:    # only use r
+                            q = self.model.predict(spap[np.newaxis, :])
+                            Y.append(r+self.GAMMA*q)    # Q[s,a] -> 0 + gamma * q(sp,ap)
+                            X.append(spap)  
                             assert scores
                             r = scores[perspective_player] if scores else 0
-                            Y.append(r)
-                            sa = None
+                            Y.append(r)                 # Q[sp,ap] -> r
+                            sa = None   # reset to new game
+                            spap = None
+                            r = None
                         else:   # take q into account
                             q = self.model.predict(spap[np.newaxis, :])
                             Y.append(r+self.GAMMA*q)
@@ -90,98 +97,10 @@ class Agent:
 
                         r = scores[perspective_player] if scores else 0
 
-        # for i,x in enumerate(X):
-        #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
-        
         X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
         del X
         self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
        
-
-    def q_train(self, batch_size=120):
-        X = []
-        Y = []
-        perspective_player = 0 # perspective of player 0 
-        for perspective_player in range(4):
-            # loop through all perspectives
-            sa = None # [s_hot,a_hot]
-            r = None
-            sp = None # [sp_hot, ap_hot]
-            for curr in self.memory: # scan memory sequentially
-                [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
-                if curr_player == perspective_player:  # considers actions of perspective player
-                    # print('memory count', count)
-                    if sa is None:  # first time
-                        sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                        # print('perspective player', perspective_player)
-
-                        r = scores[perspective_player] if len(scores) != 0 else 0
-                    else:
-                        sp = self.state_to_one_hot(board_state, curr_hand)
-                        X.append(sa)
-                        if is_end_state:    # only use r
-                            Y.append(r)
-                            sa = None
-                        else:   # take q into account
-                            # find max q(sp, a) for a in poss action from sp
-
-                            q = self.model.predict(spap[np.newaxis, :])
-                            Y.append(r+self.GAMMA*q)
-                            sa = spap
-
-                        r = scores[perspective_player] if len(scores) != 0 else 0
-
-        # for i,x in enumerate(X):
-        #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
-        
-        X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
-        del X
-        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
-       
-
-    '''
-        Sarsa lambda version
-    '''
-    def train_sarsa_lambda(self, batch_size=120):
-        X = []
-        Y = []
-        perspective_player = 0 # perspective of player 0 
-        for perspective_player in range(4):
-            # loop through all perspectives
-            sa = None # [s_hot,a_hot]
-            r = None
-            spap = None # [sp_hot, ap_hot]
-            for curr in self.memory: # scan memory sequentially
-                [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
-                if curr_player == perspective_player:  # considers actions of perspective player
-                    # print('memory count', count)
-                    if sa is None:  # first time
-                        sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                        # print('perspective player', perspective_player)
-
-                        r = scores[perspective_player] if len(scores) != 0 else 0
-                    else:
-                        spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
-                        X.append(sa)
-                        if is_end_state:    # only use r
-                            
-                            Y.append(r)
-                            sa = None
-                        else:   # take q into account
-                            q = self.model.predict(spap[np.newaxis, :])
-                            Y.append(r+self.GAMMA*q)
-                            sa = spap
-
-                        r = scores[perspective_player] if len(scores) != 0 else 0
-
-        # for i,x in enumerate(X):
-        #     self.model.fit(np.array(x).reshape(-1,1).T,np.array(Y[i]).reshape(-1,1).T,batch_size, epochs=self.NUM_EPOCHS)
-        
-        X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
-        del X
-        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=0)
-       
-
 
     def save_curr_network(self, filename, curr_path=''):
         if not filename.endswith('.h5'):
@@ -358,7 +277,7 @@ class Agent:
 
 
     '''
-        Save agent to memory as play against greedy and print stats
+        Save agent to memory as play against greedy and print states
     '''
     def selfplay_greedy(self, num_games):
         print('Play agent against Greedy')
