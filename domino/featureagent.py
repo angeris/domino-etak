@@ -22,7 +22,6 @@ class FeatureAgent:
     '''
     def matches_teammate_last_move(self, board, curr_player_hand, curr_player, action):
         domino, side = action
-        reveal_side = 0 if side == 1 else 1
         reveal_pip = domino[reveal_side]
         last_action = board[-2]
         if last_action:
@@ -33,5 +32,17 @@ class FeatureAgent:
         return 0
 
 
+    def last_k_pip(self, game, player, move):
+        remaining_dominoes = 7
+        curr_domino = move[0]
+        for d in game.board:
+            if move.fits_val(d):
+                remaining_dominoes -= 1
 
+        for d in game.get_player_hand(player):
+            if d == move:
+                continue
+            if move.fits_val(d):
+                remaining_dominoes -= 1
 
+        return remaining_dominoes == 1
