@@ -31,7 +31,7 @@ class Agent:
         self.won_games = 0
         self.all_games = []
         self.epsilon = 1.0
-        self.EPSILON_THRESHOLD = 10
+        self.EPSILON_THRESHOLD = 100
 
         model = Sequential()
         self.model = model
