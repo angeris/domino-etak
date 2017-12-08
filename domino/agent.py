@@ -26,7 +26,7 @@ class Agent:
         self.STATE_SPACE = self.ACTION_SPACE*self.MAX_POSS_MOVES+self.NUM_DOMINOS
         self.GAMMA = 0.99
         self.NUM_ITERS = 10
-        self.NUM_EPOCHS = 5
+        self.NUM_EPOCHS = 1
         self.total_games = 0
         self.won_games = 0
         self.all_games = []
@@ -63,39 +63,40 @@ class Agent:
         X = []
         Y = []
         perspective_player = 0 # perspective of player 0 
-        for perspective_player in range(4): # loop through all perspectives
-            sa = None # [s_hot,a_hot]
-            r = None
-            spap = None # [sp_hot, ap_hot]
-            for curr in self.memory: # scan memory sequentially
-                [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
-                if curr_player == perspective_player:  # considers actions of perspective player
-                    if sa is None:  # first time
-                        sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
-                        r = scores[perspective_player] if scores else 0
-                    else:
-                        spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
-                        X.append(sa)
-                        if is_end_state:    # only use r
-                            q = self.model.predict(spap[np.newaxis, :])
-                            Y.append(r+self.GAMMA*q)    # Q[s,a] -> 0 + gamma * q(sp,ap)
-                            X.append(spap)  
-                            assert scores
+        for it in range(self.NUM_ITERS):
+            for perspective_player in range(4): # loop through all perspectives
+                sa = None # [s_hot,a_hot]
+                r = None
+                spap = None # [sp_hot, ap_hot]
+                for curr in self.memory: # scan memory sequentially
+                    [board_state, best_a, is_end_state, scores, curr_hand, curr_player] = curr
+                    if curr_player == perspective_player:  # considers actions of perspective player
+                        if sa is None:  # first move of game
+                            sa = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)]
                             r = scores[perspective_player] if scores else 0
-                            Y.append(r)                 # Q[sp,ap] -> r
-                            sa = None   # reset to new game
-                            spap = None
-                            r = None
-                        else:   # take q into account
-                            q = self.model.predict(spap[np.newaxis, :])
-                            Y.append(r+self.GAMMA*q)
-                            sa = spap
-                            r = scores[perspective_player] if scores else 0
+                        else:
+                            spap = np.r_[self.state_to_one_hot(board_state, curr_hand), self.action_to_one_hot(best_a)] 
+                            X.append(sa)
+                            if is_end_state:    # only use r
+                                q = self.model.predict(spap[np.newaxis, :])
+                                Y.append(r+self.GAMMA*q)    # Q[s,a] -> 0 + gamma * q(sp,ap)
+                                X.append(spap)  
+                                assert scores
+                                r = scores[perspective_player] if scores else 0
+                                Y.append(r)                 # Q[sp,ap] -> r
+                                sa = None   # reset to new game
+                                spap = None
+                                r = None
+                            else:   # take q into account
+                                q = self.model.predict(spap[np.newaxis, :])
+                                Y.append(r+self.GAMMA*q)
+                                sa = spap
+                                r = scores[perspective_player] if scores else 0
 
-        X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
-        del X
-        self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
-       
+            X_new = np.concatenate(X).reshape(len(X), self.STATE_SPACE + self.ACTION_SPACE)
+            del X
+            self.model.fit(X_new,np.array(Y), batch_size, epochs=self.NUM_EPOCHS, verbose=1)
+           
 
     def save_curr_network(self, filename, curr_path=''):
         if not filename.endswith('.h5'):
