@@ -60,10 +60,10 @@ class Agent:
     '''
 
     def train(self, batch_size=120):
-        X = []
-        Y = []
         perspective_player = 0 # perspective of player 0 
         for it in range(self.NUM_ITERS):
+            X = []
+            Y = []
             for perspective_player in range(4): # loop through all perspectives
                 sa = None # [s_hot,a_hot]
                 r = None
