@@ -316,7 +316,7 @@ class Agent:
                     # print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
                     greedy_total += scores[greedyPlayer]
                     agent_total += scores[greedyPlayer+1]
-                    agent_won_games += agent_total > greedy_total
+                    agent_won_games += scores[greedyPlayer+1] > scores[greedyPlayer]
 
                 # save agent's plays to memory
                 if not greedyTurn:

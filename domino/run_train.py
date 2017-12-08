@@ -8,7 +8,7 @@ def main():
 
     agent = Agent()
 
-    num_games = 10
+    num_games = 100
     total_games = 0
     
     start = time.time()
