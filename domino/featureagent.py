@@ -18,17 +18,14 @@ class FeatureAgent:
         pass
 
     '''
-        Whether action will match teammate's last move
+        Whether action will match previous move of opponent. Expect negative score because
+        opens up same pips for opponent teammate to play.
     '''
-    def matches_teammate_last_move(self, board, curr_player_hand, curr_player, action):
-        domino, side = action
-        reveal_pip = domino[reveal_side]
-        last_action = board[-2]
-        if last_action:
-            last_dom, last_side = last_action
-            last_reveal_side = 0 if last_side == 1 else 1
-            if reveal_pip == last_reveal_side:
-                return 1
+    def matches_opp_last_move(self, game, player, move):
+        domino, side = move
+        new_end = domino[0] if domino[0] == game.ends[side] else domino[1]
+        if new_end == game.ends[0] or new_end == game.ends[1]:
+            return 1
         return 0
 
 
