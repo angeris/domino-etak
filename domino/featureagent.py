@@ -13,7 +13,7 @@ class FeatureAgent:
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .9
         self.learning_rate = 1e-2
-        self.dimension = 37
+        self.dimension = 38
         self.weights = np.zeros(self.dimension)
         self.weights[0] = 1
         self.total_games = 0
@@ -37,7 +37,7 @@ class FeatureAgent:
                 return(random.choice(poss_actions))
 
         for action in poss_actions:
-            state_vec = self.to_one_hot(game, player, action)
+            state_vec = self.to_one_hot(game, player-1, action)
             score = self.weights @ state_vec
 
             if score > max_score:
@@ -322,7 +322,7 @@ class FeatureAgent:
         matches_team_pass = self.matches_team_pass(game, player, move)
         return np.r_[is_greedy_move, team_move, n_player_move, last_k_pip,
                      opp_move, num_match, t_pip, num_dom_leftopp, num_dom_rightopp, num_dom_remaining_teammate, 
-                     matches_opp_pass, matches_opp2_pass, matches_team_pass]
+                     matches_opp_pass, matches_opp2_pass, matches_team_pass, 1]
 
     def train_on_memory(self):
         for it in range(self.num_iters):
@@ -379,6 +379,8 @@ class FeatureAgent:
         print(self.weights[35])
         print('Does it match the pass of my teammate?')
         print(self.weights[36])
+        print('Constant offset:')
+        print(self.weights[37])
 
     '''
         Save agent to memory as play against greedy and print states
