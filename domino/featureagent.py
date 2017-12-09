@@ -123,7 +123,7 @@ class FeatureAgent:
         return False
 
     def num_dom_inhand_matches(self, game, hand, player, action):
-        board_pip = self.ends[action[1]]
+        board_pip = game.ends[action[1]]
         if action[0].value[0] == board_pip:
             face_out_pip = action[0].value[0]
         else:
@@ -141,14 +141,14 @@ class FeatureAgent:
         return num_matches_list
 
     def total_pip(self, game, hand, player, action):
-        return action[0][0] + action[0][1]
+        return action[0].pip_val
 
     def to_one_hot(self, game, player, move):
         pass
 
     def train_on_memory(self):
         for m in self.memory:
-            game, player, move, reward, next_game, next_move = m
+            game, player, move, is_end, reward, next_game, next_move = m
             sa = to_one_hot(game, player, move)
             spap = to_one_hot(next_game, player, next_move)
 
