@@ -130,7 +130,8 @@ class FeatureAgent:
         remaining_dominoes = 7
         curr_domino = move[0]
         for d in game.board:
-            if curr_domino.fits(d):
+            domino = d[0]
+            if curr_domino.fits(domino):
                 remaining_dominoes -= 1
 
         for d in game.get_player_hand(player):
