@@ -83,6 +83,7 @@ class FeatureAgent:
         Return 1
     '''
     def matches_opp_last_move(self, game, player, move):
+        if not move: return 0
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -98,6 +99,7 @@ class FeatureAgent:
         Returns 1
     '''
     def matches_team_last_move(self, game, player, move):
+        if not move: return 0
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -118,6 +120,7 @@ class FeatureAgent:
         Returns 1
     '''
     def matches_next_player_last_move(self, game, player, move):
+        if not move: return 0
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -131,10 +134,10 @@ class FeatureAgent:
 
     def last_k_pip(self, game, player, move):
         remaining_dominoes = 7
+        if not move: return 0
         curr_domino = move[0]
         for d in game.board:
-            domino = d[0]
-            if curr_domino.fits(domino):
+            if curr_domino.fits(d):
                 remaining_dominoes -= 1
 
         for d in game.get_player_hand(player):
@@ -154,11 +157,12 @@ class FeatureAgent:
                 if action[0] >= max_pip_domino:
                     max_pip_domino = action[0]
                     best_a = action
-        if best_a == action:
+        if best_a == move:
             return True
         return False
 
     def num_dom_inhand_matches(self, game, player, move):
+        if move is None: return [0,0,0,0,0,0,0]
         board_pip = game.ends[move[1]]
         if move[0].value[0] == board_pip:
             face_out_pip = move[0].value[0]
@@ -176,8 +180,9 @@ class FeatureAgent:
         num_matches_list[num_matches] = 1
         return num_matches_list
 
-    def total_pip(self, game, hand, player, action):
-        return action[0].pip_val
+    def total_pip(self, game, hand, player, move):
+        if move is None: return 0
+        return move[0].pip_val
 
     def to_one_hot(self, game, player, move):
         opp_move = self.matches_opp_last_move(game, player, move)
