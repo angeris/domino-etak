@@ -1,5 +1,8 @@
 import numpy as np
 from collections import deque
+from game import DominosGame
+from domino import Domino
+from copy import deepcopy
 
 class FeatureAgent:
     def __init__(self, q_maxlen=10000):
@@ -10,7 +13,8 @@ class FeatureAgent:
         self.weights = np.array(self.dimension)
 
     def get_agent_move(self, game):
-        pass
+        poss_actions = game.get_possible_actions
+        
 
     def save_weights(self, file_name='output'):
         np.save(open('{}.npz'.format(file_name), 'wb'), self.weights)
@@ -24,13 +28,13 @@ class FeatureAgent:
             curr_move = None
             while(not is_end_state): 
                 if curr_game is None:   # first move of game (s,a)
-                    curr_game = copy(game)
+                    curr_game = deepcopy(game)
                     curr_player = game.curr_player
-                    curr_move = self.getAgentMove(game)
+                    curr_move = self.get_agent_move(game)
                     game.move(curr_move)
                 else:
-                    next_game = copy(game)
-                    next_move = self.getAgentMove(game)
+                    next_game = deepcopy(game)
+                    next_move = self.get_agent_move(game)
                     game.move(next_move)
                     is_end_state = game.is_end_state()  # after  `next_move`
                     reward = []
@@ -84,7 +88,7 @@ class FeatureAgent:
         last_team_move = board[-2]
         if last_team_move:
             last_dom = last_team_move[0]
-            if last_dom.fits_val(new_end_val)
+            if last_dom.fits_val(new_end_val):
                 return 1
         return 0
 
@@ -102,7 +106,7 @@ class FeatureAgent:
         last_team_move = board[-3]
         if last_team_move:
             last_dom = last_team_move[0]
-            if last_dom.fits_val(new_end_val)
+            if last_dom.fits_val(new_end_val):
                 return 1
         return 0
 

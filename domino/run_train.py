@@ -1,12 +1,20 @@
 from agent import Agent
 import time
+from featureagent import FeatureAgent
 
 NUM_PLAYS = 20000
 
 def main():
 
+    agent = FeatureAgent()
+    num_games = 10
+    for curr_iter in range(NUM_PLAYS):
+        agent.selfplay(num_games)
 
+
+'''
     agent = Agent()
+    
 
     num_games = 10
     total_games = 0
@@ -33,6 +41,8 @@ def main():
 
     print('time to train', end - start)
     agent.play_greedy(2*num_games)
-    
+'''
+
+
 if __name__ == '__main__':
     main()
