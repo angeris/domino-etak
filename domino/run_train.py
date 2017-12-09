@@ -11,6 +11,7 @@ def main():
         print('Curr_iter', curr_iter)
         agent.selfplay(num_games)
         agent.train_on_memory()
+        agent.play_greedy(num_games, random_flag=False)
 
 
 '''

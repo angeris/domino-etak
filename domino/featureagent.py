@@ -3,6 +3,7 @@ from collections import deque
 from game import DominosGame
 from domino import Domino
 from copy import deepcopy
+import random
 
 class FeatureAgent:
     def __init__(self, q_maxlen=10000):
@@ -12,8 +13,13 @@ class FeatureAgent:
         self.dimension = 14
         self.weights = np.zeros(self.dimension)
         self.weights[0] = 1
+        self.total_games = 0
+        self.EPSILON_THRESHOLD = 100
+        self.won_games = 0
+        self.all_games = []
+        self.epsilon = 1.0
 
-    def get_agent_move(self, game):
+    def get_agent_move(self, game, total_games):
         poss_actions = game.get_possible_actions()
         max_score = float('-inf')
         max_action = None
@@ -30,6 +36,17 @@ class FeatureAgent:
 
         return action
 
+    def getGreedyMove(self, game):
+        poss_actions = game.get_possible_actions()
+        best_a = None
+        max_pip_domino = Domino(0,0)
+        if poss_actions[0] is not None:
+            for action in poss_actions:
+                if action[0] >= max_pip_domino:
+                    max_pip_domino = action[0]
+                    best_a = action
+        return best_a
+
     def save_weights(self, file_name='output'):
         np.save(open('{}.npz'.format(file_name), 'wb'), self.weights)
 
@@ -44,11 +61,11 @@ class FeatureAgent:
                 if curr_game is None:   # first move of game (s,a)
                     curr_game = deepcopy(game)
                     curr_player = game.curr_player
-                    curr_move = self.get_agent_move(game)
+                    curr_move = self.get_agent_move(game, self.total_games)
                     game.move(curr_move)
                 else:
                     next_game = deepcopy(game)
-                    next_move = self.get_agent_move(game)
+                    next_move = self.get_agent_move(game, self.total_games)
                     game.move(next_move)
                     is_end_state = game.is_end_state()  # after  `next_move`
                     reward = []
@@ -79,7 +96,57 @@ class FeatureAgent:
                     curr_move = next_move
 
             
+    '''
+        Test against greedy (shows stats no save to memory)
+        Can also test greedy against random by passing random_flag = True
+    '''
+    def play_greedy(self, num_games, random_flag=False):
+        print('Play agent against Greedy')
+        agent_total = 0
+        greedy_total = 0
+        for i in range(num_games): # play multiple games
+            # print('Game', i)
 
+            if random.random() < 0.5:   # init starting player
+                greedyTurn = True
+                greedyPlayer = 0
+            else:
+                greedyTurn = False
+                greedyPlayer = 1
+
+            game = DominosGame(0)
+            is_end_state = game.is_end_state()
+           
+            while(not is_end_state):    # play game
+                if greedyTurn:
+                    best_a = self.getGreedyMove(game)
+                else:   # regular agent turn
+                    if random_flag:
+                        best_a = self.getRandomMove(game)
+                    else:
+                        best_a = self.get_agent_move(game, self.total_games)
+                game.move(best_a)
+                is_end_state = game.is_end_state()
+                if is_end_state:
+                    scores = []
+                    for player_idx in range(4):
+                        scores.append(game.get_score(player_idx))
+                    print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
+                    greedy_total += scores[greedyPlayer]
+                    agent_total += scores[greedyPlayer+1]
+                greedyTurn = not greedyTurn
+        
+        print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
+        self.total_games += 1
+        if self.total_games % self.EPSILON_THRESHOLD == 0:
+            self.epsilon *= 0.5
+        self.won_games += agent_total > greedy_total
+        self.all_games.append(agent_total > greedy_total)
+        if len(self.all_games) % 100 == 0:
+            pk.dump({'all_games':self.all_games}, open('all_games_{}'.format(len(self.all_games)), 'wb'))
+        last_idx = min(100, len(self.all_games))
+        print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
+        print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
 
     '''
         Whether action will match previous move of opponent. Expect negative weight.
@@ -206,7 +273,7 @@ class FeatureAgent:
 
     def train_on_memory(self):
         for m in self.memory:
-            print(m)
+            # print(m)
             game, player, move, is_end, reward, next_game, next_move = m
             sa = self.to_one_hot(game, player, move)
             if not is_end:
