@@ -15,7 +15,7 @@ class FeatureAgent:
         self.learning_rate = 1e-2
         self.dimension = 38
         self.weights = np.zeros(self.dimension)
-        self.weights[0] = 1
+        self.weights[0] = 0
         self.total_games = 0
         self.EPSILON_THRESHOLD = 1
         self.eps_discount = .9
