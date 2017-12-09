@@ -117,7 +117,7 @@ class FeatureAgent:
 
     def train_on_memory(self):
         for m in self.memory:
-            game, player, move, reward, next_game, next_move = m
+            game, player, move, is_end, reward, next_game, next_move = m
             sa = to_one_hot(game, player, move)
             spap = to_one_hot(next_game, player, next_move)
 
