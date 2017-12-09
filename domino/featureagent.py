@@ -37,7 +37,7 @@ class FeatureAgent:
                     if is_end_state:
                         for player_idx in range(4):
                             reward.append(game.get_score(player_idx))
-                        # back propagate is_end_state=True and reward to last moves of past 3 players
+                        # back propagate is_end_state=True and reward to last moves of past 2 players
                         self.memory[-1][4] = reward
                         self.memory[-1][3] = True
                         self.memory[-2][4] = reward
