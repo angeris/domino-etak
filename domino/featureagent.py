@@ -132,7 +132,7 @@ class FeatureAgent:
                 remaining_dominoes -= 1
 
         for d in game.get_player_hand(player):
-            if d == move:
+            if d == move[0]:
                 continue
             if move.fits(d):
                 remaining_dominoes -= 1
