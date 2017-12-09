@@ -12,7 +12,7 @@ class FeatureAgent:
     def __init__(self, q_maxlen=10000):
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .9
-        self.learning_rate = 1e-2
+        self.learning_rate = 1e-3
         self.dimension = 38
         self.weights = np.zeros(self.dimension)
         self.weights[0] = 0
