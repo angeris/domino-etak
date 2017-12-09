@@ -9,7 +9,7 @@ class FeatureAgent:
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .99
         self.learning_rate = 0.01
-        self.dimension = 13
+        self.dimension = 14
         self.weights = np.zeros(self.dimension)
         self.weights[0] = 1
 
@@ -130,13 +130,13 @@ class FeatureAgent:
         remaining_dominoes = 7
         curr_domino = move[0]
         for d in game.board:
-            if move.fits(d):
+            if curr_domino.fits(d):
                 remaining_dominoes -= 1
 
         for d in game.get_player_hand(player):
             if d == move[0]:
                 continue
-            if move.fits(d):
+            if move[0].fits(d):
                 remaining_dominoes -= 1
 
         return remaining_dominoes == 1
@@ -162,7 +162,7 @@ class FeatureAgent:
             face_out_pip = move[0].value[1]
 
         num_matches = 0
-        curr_hand = game.get_player_hand(curr_player)
+        curr_hand = game.get_player_hand(player)
         poss_actions = game.get_possible_actions()
         if curr_hand[0] is not None:
             for dom in curr_hand:
@@ -182,7 +182,8 @@ class FeatureAgent:
         last_k_pip = self.last_k_pip(game, player, move)
         is_greedy_move = self.is_greedy_move(game, player, move)
         num_match = self.num_dom_inhand_matches(game, player, move)
-        t_pip = self.total_pip(game, player, move)
+        hand = game.get_player_hand
+        t_pip = self.total_pip(game, hand, player, move)
 
         return np.r_[is_greedy_move, team_move, n_player_move, last_k_pip,
                      opp_move, num_match, t_pip, 1]
