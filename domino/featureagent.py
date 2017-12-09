@@ -43,7 +43,6 @@ class FeatureAgent:
                 curr_game = deepcopy(game)
                 curr_player = game.curr_player
                 curr_move = self.get_agent_move(game)
-                print(curr_move)
                 game.move(curr_move)
                 is_end_state = game.is_end_state()
                 reward = []
@@ -58,7 +57,7 @@ class FeatureAgent:
                     self.memory[-3][4] = reward
                     self.memory[-3][3] = True
 
-                    print('Reward', reward)
+                    # print('Reward', reward)
 
                 sar = [curr_game, curr_player, curr_move, is_end_state, reward]
                 self.memory.append(sar)
@@ -188,31 +187,32 @@ class FeatureAgent:
                      opp_move, num_match, t_pip, 1]
 
     def train_on_memory(self):
-
-        for it in range(self.num_iters):
+        for it in range(2):
             for perspective_player in range(4):
+                curr_mem = None
                 for m in self.memory:
                     [game, player, move, is_end, reward] = m
-                    print(m)
-                    
-                    curr_mem = [None, None, None, None, None]
-
                     if player == perspective_player:
-                        if curr_game is None:   # first move of game (s,a)
+                        print('next', m)
+                        if curr_mem is None:   # first move of game (s,a)
                             curr_mem = m
                         else:
                             sa = self.to_one_hot(curr_mem[0], curr_mem[1], curr_mem[2]) # game, player, move
-                            if not curr_mem[3]:
+                            curr_end = curr_mem[3]
+                            print('curr', curr_mem)
+                            if not curr_end: # not end state
                                 spap = self.to_one_hot(game, player, move)
+                                self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
                                 curr_mem = m
 
-                            if curr_end:
-                                self.weights += self.learning_rate*(reward[player] - self.weights @ sa)
-                                curr_game = None
-                                curr_player = None
-                                curr_end = None
-                                curr_move = None
-                                continue
+                            else:
+                                print('Reward of sa', curr_mem[4])
+                                self.weights += self.learning_rate*(curr_mem[4][player] - self.weights @ sa) # do not consider spap
+                                curr_mem = m
+                if curr_mem[3]:
+                    print('curr', curr_mem)
+                    print('Reward of sa', curr_mem[4])
+                    self.weights += self.learning_rate*(curr_mem[4][player] - self.weights @ sa) # do not consider spap
 
-                        self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
+                        
 
