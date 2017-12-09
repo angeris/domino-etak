@@ -193,25 +193,25 @@ class FeatureAgent:
                 for m in self.memory:
                     [game, player, move, is_end, reward] = m
                     if player == perspective_player:
-                        print('next', m)
+                        # print('next', m)
                         if curr_mem is None:   # first move of game (s,a)
                             curr_mem = m
                         else:
                             sa = self.to_one_hot(curr_mem[0], curr_mem[1], curr_mem[2]) # game, player, move
                             curr_end = curr_mem[3]
-                            print('curr', curr_mem)
+                            # print('curr', curr_mem)
                             if not curr_end: # not end state
                                 spap = self.to_one_hot(game, player, move)
                                 self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
                                 curr_mem = m
 
                             else:
-                                print('Reward of sa', curr_mem[4])
+                                # print('Reward of sa', curr_mem[4])
                                 self.weights += self.learning_rate*(curr_mem[4][player] - self.weights @ sa) # do not consider spap
                                 curr_mem = m
-                if curr_mem[3]:
-                    print('curr', curr_mem)
-                    print('Reward of sa', curr_mem[4])
+                if curr_mem[3]: # case of last sar in memory
+                    # print('curr', curr_mem)
+                    # print('Reward of sa', curr_mem[4])
                     self.weights += self.learning_rate*(curr_mem[4][player] - self.weights @ sa) # do not consider spap
 
                         
