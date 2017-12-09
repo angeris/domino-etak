@@ -279,8 +279,8 @@ class FeatureAgent:
                 if action[0] >= max_pip_domino:
                     max_pip_domino = action[0]
                     best_a = action
-        if best_a == move:
-            return True
+            if best_a == move:
+                return True
         return False
 
     def num_dom_inhand_matches(self, game, player, move):
