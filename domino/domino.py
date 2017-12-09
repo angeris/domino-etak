@@ -7,6 +7,11 @@ class Domino:
         self.pip_val = a+b
 
     def fits(self, other):
+        if type(other) == tuple:
+            return (self.value[0] == other[0] or
+                    self.value[0] == other[1] or
+                    self.value[1] == other[0] or
+                    self.value[1] == other[1])
         return (self.value[0] == other.value[0] or
                 self.value[0] == other.value[1] or
                 self.value[1] == other.value[0] or
