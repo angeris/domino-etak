@@ -150,7 +150,7 @@ class FeatureAgent:
         if move is None: return 0
         domino = move[0]
         side = move[1]
-        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        new_end_val = domino[0] if domino[1] == game.ends[side] else domino[1]
         if new_end_val == game.ends[0] or new_end_val == game.ends[1]:
             return 1
         return 0
@@ -159,7 +159,7 @@ class FeatureAgent:
         if move is None: return 0
         domino = move[0]
         side = move[1]
-        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        new_end_val = domino[0] if domino[1] == game.ends[side] else domino[1]
         opp_hand = game.get_player_hand((player+1)%4)
         for d in opp_hand:
             if d.fits_val(new_end_val):
@@ -170,7 +170,7 @@ class FeatureAgent:
         if move is None: return 0
         domino = move[0]
         side = move[1]
-        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        new_end_val = domino[0] if domino[1] == game.ends[side] else domino[1]
         opp_hand = game.get_player_hand((player-1)%4)
         for d in opp_hand:
             if d.fits_val(new_end_val):
@@ -181,7 +181,7 @@ class FeatureAgent:
         if move is None: return 0
         domino = move[0]
         side = move[1]
-        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        new_end_val = domino[0] if domino[1] == game.ends[side] else domino[1]
         team_hand = game.get_player_hand((player-2)%4)
         for d in team_hand:
             if d.fits_val(new_end_val):
@@ -199,7 +199,7 @@ class FeatureAgent:
         if move is None: return 0
         domino = move[0]
         side = move[1]
-        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        new_end_val = domino[0] if domino[1] == game.ends[side] else domino[1]
         if len(game.board) > 2:
             last_team_move = game.board[-2]
             if last_team_move:
@@ -220,7 +220,7 @@ class FeatureAgent:
         if move is None: return 0
         domino = move[0]
         side = move[1]
-        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        new_end_val = domino[0] if domino[1] == game.ends[side] else domino[1]
         if len(game.board) > 3:
             last_team_move = game.board[-3]
             if last_team_move:
