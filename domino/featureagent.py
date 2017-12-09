@@ -51,10 +51,6 @@ class FeatureAgent:
         best_a = None
         max_pip_domino = Domino(0,0)
         if poss_actions[0] is not None:
-            if random.random() < self.epsilon:
-                return(random.choice(poss_actions))
-
-        if poss_actions[0] is not None:
             for action in poss_actions:
                 if action[0] >= max_pip_domino:
                     max_pip_domino = action[0]
