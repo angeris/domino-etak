@@ -9,7 +9,8 @@ def main():
     num_games = 10
     for curr_iter in range(NUM_PLAYS):
         print('Curr_iter', curr_iter)
-        agent.selfplay(num_games)
+        agent.selfplay_greedy(num_games)
+        print('train on memory')
         agent.train_on_memory()
         print('Test on greedy')
         agent.play_greedy(num_games, random_flag=False)

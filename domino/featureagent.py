@@ -4,6 +4,9 @@ from game import DominosGame
 from domino import Domino
 from copy import deepcopy
 import random
+from copy import copy
+import os
+import pickle as pk
 
 class FeatureAgent:
     def __init__(self, q_maxlen=10000):
@@ -285,3 +288,68 @@ class FeatureAgent:
 
                         self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
 
+    '''
+        Save agent to memory as play against greedy and print states
+    '''
+    def selfplay_greedy(self, num_games):
+        print('Play agent against Greedy + Save to memory')
+        print('Epsilon', self.epsilon)
+        agent_total = 0
+        greedy_total = 0
+        agent_won_games = 0
+        for i in range(num_games): # play multiple games
+            if random.random() < 0.5:   # init starting player
+                greedyTurn = True
+                greedyPlayer = 0
+            else:
+                greedyTurn = False
+                greedyPlayer = 1
+
+            game = DominosGame(0)
+            is_end_state = game.is_end_state()
+           
+            while(not is_end_state):    # play game
+                board = copy(game.board)
+                curr_player = game.curr_player
+                curr_player_hand = game.get_player_hand(curr_player)
+                
+                if greedyTurn:
+                    best_a = self.getGreedyMove(game)
+                else:   # regular agent turn
+                    best_a = self.get_agent_move(game, self.total_games)
+                game.move(best_a)
+                
+                is_end_state = game.is_end_state()
+                scores = []
+                if is_end_state:
+                    for player_idx in range(4):
+                        scores.append(game.get_score(player_idx))
+
+                    # back propogate scores and end state
+                    self.memory[-1][3] = scores
+                    self.memory[-1][2] = True
+
+                    # print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
+                    greedy_total += scores[greedyPlayer]
+                    agent_total += scores[greedyPlayer+1]
+                    agent_won_games += scores[greedyPlayer+1] > scores[greedyPlayer]
+
+                # save agent's plays to memory
+                if not greedyTurn:
+                    sa = [board, best_a, is_end_state, scores, curr_player_hand, curr_player]
+                    self.memory.append(sa)
+
+                greedyTurn = not greedyTurn
+        
+            print('Agent pip total: {} | Greedy pip total: {}'.format(agent_total, greedy_total))
+            self.total_games += 1
+            if self.total_games % self.EPSILON_THRESHOLD == 0:
+                self.epsilon *= 0.5
+            self.won_games += agent_total > greedy_total
+            self.all_games.append(agent_total > greedy_total)
+            if len(self.all_games) % 100 == 0:
+                pk.dump({'all_games':self.all_games}, open('all_games_{}'.format(len(self.all_games)), 'wb'))
+            last_idx = min(100, len(self.all_games))
+            print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
+            print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
+            print('Proportion of indiv games won:', agent_won_games/num_games)
