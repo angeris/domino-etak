@@ -327,6 +327,8 @@ class FeatureAgent:
     def train_on_memory(self):
         for it in range(self.num_iters):
             for perspective_player in range(4):
+                if perspective_player % 2 == 1:
+                    continue
                 curr_mem = None
                 for m in self.memory:
                     [game, player, move, is_end, reward] = m
@@ -392,12 +394,14 @@ class FeatureAgent:
         greedy_total = 0
         agent_won_games = 0
         for i in range(num_games): # play multiple games
-            if random.random() < 0.5:   # init starting player
-                greedyTurn = True
-                greedyPlayer = 0
-            else:
-                greedyTurn = False
-                greedyPlayer = 1
+            # if random.random() < 0.5:   # init starting player
+                # greedyTurn = True
+                # greedyPlayer = 0
+            # else:
+                # greedyTurn = False
+                # greedyPlayer = 1
+            greedyTurn = False
+            greedyPlayer = 1
 
             game = DominosGame(0)
             is_end_state = game.is_end_state()
