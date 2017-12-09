@@ -11,10 +11,24 @@ class FeatureAgent:
         self.learning_rate = 0.01
         self.dimension = 100
         self.weights = np.array(self.dimension)
+        self.weights[0] = 1
 
     def get_agent_move(self, game):
-        poss_actions = game.get_possible_actions
-        
+        poss_actions = game.get_possible_actions()
+        max_score = float('-inf')
+        max_action = None
+
+        player = game.curr_player
+
+        for action in poss_actions:
+            state_vec = self.to_one_hot(game, player, action)
+            score = self.weights @ state_vec
+
+            if score > max_score:
+                max_score = score
+                max_action = action
+
+        return action
 
     def save_weights(self, file_name='output'):
         np.save(open('{}.npz'.format(file_name), 'wb'), self.weights)
@@ -168,8 +182,8 @@ class FeatureAgent:
         num_match = self.num_dom_inhand_matches(game, player, move)
         t_pip = self.total_pip(game, player, move)
 
-        return np.r_[opp_move, team_move, n_player_move, last_k_pip,
-                     is_greedy_move, num_match, t_pip]
+        return np.r_[is_greedy_move, team_move, n_player_move, last_k_pip,
+                     opp_move, num_match, t_pip, 1]
 
     def train_on_memory(self):
         for m in self.memory:
