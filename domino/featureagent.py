@@ -143,7 +143,7 @@ class FeatureAgent:
         Return 1
     '''
     def matches_opp_last_move(self, game, player, move):
-        if not move: return 0
+        if move is None: return 0
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -159,7 +159,8 @@ class FeatureAgent:
         Returns 1
     '''
     def matches_team_last_move(self, game, player, move):
-        if not move: return 0
+        if move is None: return 0
+        print(move)
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -180,7 +181,7 @@ class FeatureAgent:
         Returns 1
     '''
     def matches_next_player_last_move(self, game, player, move):
-        if not move: return 0
+        if move is None: return 0
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -310,9 +311,8 @@ class FeatureAgent:
             is_end_state = game.is_end_state()
            
             while(not is_end_state):    # play game
-                board = copy(game.board)
+                game = deepcopy(game)
                 curr_player = game.curr_player
-                curr_player_hand = game.get_player_hand(curr_player)
                 
                 if greedyTurn:
                     best_a = self.getGreedyMove(game)
@@ -337,9 +337,8 @@ class FeatureAgent:
 
                 # save agent's plays to memory
                 if not greedyTurn:
-                    sa = [board, best_a, is_end_state, scores, curr_player_hand, curr_player]
-                    self.memory.append(sa)
-
+                    sar = [game, curr_player, best_a, is_end_state, scores]
+                    self.memory.append(sar)
                 greedyTurn = not greedyTurn
         
             print('Agent pip total: {} | Greedy pip total: {}'.format(agent_total, greedy_total))
