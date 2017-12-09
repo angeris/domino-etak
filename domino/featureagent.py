@@ -291,7 +291,7 @@ class FeatureAgent:
                      opp_move, num_match, t_pip, num_dom_leftopp, num_dom_rightopp, num_dom_remaining_teammate, 1]
 
     def train_on_memory(self):
-        for it in range(2):
+        for it in range(self.num_iters):
             for perspective_player in range(4):
                 curr_mem = None
                 for m in self.memory:
