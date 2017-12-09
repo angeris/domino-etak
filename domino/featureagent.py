@@ -13,7 +13,7 @@ class FeatureAgent:
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .99
         self.learning_rate = 1e-4
-        self.dimension = 14
+        self.dimension = 28
         self.weights = np.zeros(self.dimension)
         self.weights[0] = 100
         self.total_games = 0
@@ -213,6 +213,20 @@ class FeatureAgent:
 
         return remaining_dominoes == 1
 
+    def num_dom_remaining_leftopp(self,game,player,move):
+        player_opp = (player - 1) % 4
+        curr_hand = game.get_player_hand(player_opp)
+        curr_hand_len = [0,0,0,0,0,0,0]
+        curr_hand_len[len(curr_hand) -1] = 1
+        return curr_hand_len
+
+    def num_dom_remaining_rightopp(self,game,player,move):
+        player_opp = (player + 1) % 4
+        curr_hand = game.get_player_hand(player_opp)
+        curr_hand_len = [0,0,0,0,0,0,0]
+        curr_hand_len[len(curr_hand)-1] = 1
+        return curr_hand_len
+
     def is_greedy_move(self, game, player, move):
         poss_actions = game.get_possible_actions()
         best_a = None
@@ -258,9 +272,11 @@ class FeatureAgent:
         num_match = self.num_dom_inhand_matches(game, player, move)
         hand = game.get_player_hand
         t_pip = self.total_pip(game, hand, player, move)
+        num_dom_leftopp = self.num_dom_remaining_leftopp(game, player, move)
+        num_dom_rightopp = self.num_dom_remaining_rightopp(game, player, move)
 
         return np.r_[is_greedy_move, team_move, n_player_move, last_k_pip,
-                     opp_move, num_match, t_pip, 1]
+                     opp_move, num_match, t_pip, num_dom_leftopp, num_dom_rightopp, 1]
 
     def train_on_memory(self):
         for it in range(2):
