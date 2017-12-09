@@ -12,12 +12,12 @@ class FeatureAgent:
     def __init__(self, q_maxlen=10000):
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .99
-        self.learning_rate = 0.01
+        self.learning_rate = 1e-4
         self.dimension = 14
         self.weights = np.zeros(self.dimension)
-        self.weights[0] = 1
+        self.weights[0] = 100
         self.total_games = 0
-        self.EPSILON_THRESHOLD = 100
+        self.EPSILON_THRESHOLD = 10
         self.won_games = 0
         self.all_games = []
         self.epsilon = 1.0
@@ -30,6 +30,9 @@ class FeatureAgent:
         max_action = None
 
         player = game.curr_player
+        if poss_actions[0] is not None:
+            if random.random() < self.epsilon:
+                return(random.choice(poss_actions))
 
         for action in poss_actions:
             state_vec = self.to_one_hot(game, player, action)
@@ -286,7 +289,7 @@ class FeatureAgent:
                     # print('curr', curr_mem)
                     # print('Reward of sa', curr_mem[4])
                     self.weights += self.learning_rate*(curr_mem[4][player] - self.weights @ sa) # do not consider spap
-
+        print('Weights', self.weights)
                         
 
     '''
@@ -340,15 +343,15 @@ class FeatureAgent:
                     self.memory.append(sar)
                 greedyTurn = not greedyTurn
         
-            print('Agent pip total: {} | Greedy pip total: {}'.format(agent_total, greedy_total))
-            self.total_games += 1
-            if self.total_games % self.EPSILON_THRESHOLD == 0:
-                self.epsilon *= 0.5
-            self.won_games += agent_total > greedy_total
-            self.all_games.append(agent_total > greedy_total)
-            if len(self.all_games) % 100 == 0:
-                pk.dump({'all_games':self.all_games}, open('all_games_{}'.format(len(self.all_games)), 'wb'))
-            last_idx = min(100, len(self.all_games))
-            print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
-            print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
-            print('Proportion of indiv games won:', agent_won_games/num_games)
+        print('Agent pip total: {} | Greedy pip total: {}'.format(agent_total, greedy_total))
+        self.total_games += 1
+        if self.total_games % self.EPSILON_THRESHOLD == 0:
+            self.epsilon *= 0.5
+        self.won_games += agent_total > greedy_total
+        self.all_games.append(agent_total > greedy_total)
+        if len(self.all_games) % 100 == 0:
+            pk.dump({'all_games':self.all_games}, open('all_games_{}'.format(len(self.all_games)), 'wb'))
+        last_idx = min(100, len(self.all_games))
+        print('Current proportion of games won : {}'.format(float(self.won_games)/self.total_games))
+        print('Proportion of last {} games won: {}'.format(last_idx, sum(self.all_games[-last_idx:])/last_idx))
+        print('Proportion of indiv games won:', agent_won_games/num_games)
