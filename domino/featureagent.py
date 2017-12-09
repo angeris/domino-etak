@@ -10,13 +10,6 @@ class FeatureAgent:
         self.weights = np.array(self.dimension)
 
     def get_agent_move(self, game):
-        curr_player = game.curr_player
-        curr_player_hand = game.get_player_hand(curr_player)
-        poss_actions = game.get_possible_actions()
-        for poss_a in poss_actions:
-            domino, side = poss_a
-            
-
         pass
 
     def save_weights(self):
@@ -120,7 +113,7 @@ class FeatureAgent:
         return action[0][0] + action[0][1]
 
     def to_one_hot(self, game, player, move):
-        continue
+        pass
 
     def train_on_memory(self):
         for m in self.memory:
@@ -128,5 +121,9 @@ class FeatureAgent:
             sa = to_one_hot(game, player, move)
             spap = to_one_hot(next_game, player, next_move)
 
-            self.weights += self.learning_rate*(reward + self.weights @ (spap - sa))*sa
+            if reward > 0:
+                self.weights += self.learning_rate*(reward - self.weights @ sa)
+                continue
+
+            self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
 
