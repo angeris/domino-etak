@@ -137,7 +137,7 @@ class FeatureAgent:
         if not move: return 0
         curr_domino = move[0]
         for d in game.board:
-            if curr_domino.fits(d):
+            if curr_domino.fits(d[0]):
                 remaining_dominoes -= 1
 
         for d in game.get_player_hand(player):
