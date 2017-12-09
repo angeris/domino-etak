@@ -208,7 +208,7 @@ class FeatureAgent:
             spap = self.to_one_hot(next_game, player, next_move)
 
             if is_end:
-                self.weights += self.learning_rate*(reward - self.weights @ sa)
+                self.weights += self.learning_rate*(reward[player] - self.weights @ sa)
                 continue
 
             self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
