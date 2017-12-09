@@ -12,8 +12,8 @@ class FeatureAgent:
     def get_agent_move(self, game):
         pass
 
-    def save_weights(self):
-        pass
+    def save_weights(self, file_name='output'):
+        np.save(open('{}.npz'.format(file_name), 'wb'), self.weights)
 
     def selfplay(self, num_games):
         for i in range(num_games): # play multiple games
@@ -166,8 +166,6 @@ class FeatureAgent:
 
         return np.r_[opp_move, team_move, n_player_move, last_k_pip,
                      is_greedy_move, num_match, t_pip]
-
-
 
     def train_on_memory(self):
         for m in self.memory:
