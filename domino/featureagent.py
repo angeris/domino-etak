@@ -13,7 +13,7 @@ class FeatureAgent:
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .99
         self.learning_rate = 1e-3
-        self.dimension = 35
+        self.dimension = 38
         self.weights = np.zeros(self.dimension)
         # self.weights[0] = 0
         self.total_games = 0
@@ -159,6 +159,39 @@ class FeatureAgent:
             return 1
         return 0
 
+    def matches_opp_pass(self, game, player, move):
+        if move is None: return 0
+        domino = move[0]
+        side = move[1]
+        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        opp_hand = game.get_player_hand((player+1)%4)
+        for d in opp_hand:
+            if d.fits_val(new_end_val):
+                return 1
+        return 0
+
+    def matches_opp_2_pass(self, game, player, move):
+        if move is None: return 0
+        domino = move[0]
+        side = move[1]
+        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        opp_hand = game.get_player_hand((player-1)%4)
+        for d in opp_hand:
+            if d.fits_val(new_end_val):
+                return 1
+        return 0
+
+    def matches_team_pass(self, game, player, move):
+        if move is None: return 0
+        domino = move[0]
+        side = move[1]
+        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        team_hand = game.get_player_hand((player-2)%4)
+        for d in team_hand:
+            if d.fits_val(new_end_val):
+                return 1
+        return 0
+
     '''
         Whether action will match what teammate opened up for you. Expect positive weight.
         Teammate: 2-1
@@ -287,8 +320,12 @@ class FeatureAgent:
         num_dom_leftopp = self.num_dom_remaining_leftopp(game, player, move)
         num_dom_rightopp = self.num_dom_remaining_rightopp(game, player, move)
         num_dom_remaining_teammate = self.num_dom_remaining_teammate(game, player,move)
+        matches_opp_pass = self.matches_opp_pass(game, player, move)
+        matches_opp2_pass = self.matches_opp_2_pass(game, player, move)
+        matches_team_pass = self.matches_team_pass(game, player, move)
         return np.r_[is_greedy_move, team_move, n_player_move, last_k_pip,
-                     opp_move, num_match, t_pip, num_dom_leftopp, num_dom_rightopp, num_dom_remaining_teammate, 1]
+                     opp_move, num_match, t_pip, num_dom_leftopp, num_dom_rightopp, num_dom_remaining_teammate, 
+                     matches_opp_pass, matches_opp2_pass, matches_team_pass, 1]
 
     def train_on_memory(self):
         for it in range(self.num_iters):
