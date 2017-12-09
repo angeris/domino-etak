@@ -10,33 +10,27 @@ class FeatureAgent:
         self.weights = np.array(self.dimension)
 
     def get_agent_move(self, game):
-        curr_player = game.curr_player
-        curr_player_hand = game.get_player_hand(curr_player)
-        poss_actions = game.get_possible_actions()
-        for poss_a in poss_actions:
-            domino, side = poss_a
         pass
 
     def save_weights(self):
         pass
 
-    def selfplay(self):
+    def selfplay(self, num_games):
         agent0Wins = 0
         for i in range(num_games): # play multiple games
             game = DominosGame()
             is_end_state = game.is_end_state()
-            while(not is_end_state):    # play game
-                board = copy(game.board)
+            while(not is_end_state): 
+                game_c = copy(game)
                 curr_player = game.curr_player
-                curr_player_hand = game.get_player_hand(curr_player)
-                best_a = self.getAgentMove(game, self.total_games)    # pass in total games played so far which is updated when testing against greedy?
+                best_a = self.getAgentMove(game)  
                 game.move(best_a)
+                game_next = copy(game)
                 is_end_state = game.is_end_state()
                 scores = []
                 if is_end_state:
                     for player_idx in range(4):
                         scores.append(game.get_score(player_idx))
-                    # print('scores', scores)
                     # back propogate scores and end state
                     self.memory[-1][3] = scores
                     self.memory[-1][2] = True
@@ -47,8 +41,7 @@ class FeatureAgent:
 
                     if scores[0] >= scores[1]:
                         agent0Wins +=1
-                # s', a, is_end, scores, hand, curr_player
-                sa = [board, best_a, is_end_state, scores, curr_player_hand, curr_player]
+                sa = [game_c, curr_player, best_a, scores, game_next, ###]
                 self.memory.append(sa)
         print('Agent 0 wins', float(agent0Wins)/num_games)
 
@@ -151,7 +144,7 @@ class FeatureAgent:
         return action[0][0] + action[0][1]
 
     def to_one_hot(self, game, player, move):
-        continue
+        pass
 
     def train_on_memory(self):
         for m in self.memory:
@@ -159,5 +152,9 @@ class FeatureAgent:
             sa = to_one_hot(game, player, move)
             spap = to_one_hot(next_game, player, next_move)
 
-            self.weights += self.learning_rate*(reward + self.weights @ (spap - sa))*sa
+            if reward > 0:
+                self.weights += self.learning_rate*(reward - self.weights @ sa)
+                continue
+
+            self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
 
