@@ -18,8 +18,10 @@ class FeatureAgent:
         pass
 
     '''
-        Whether action will match previous move of opponent. Expect negative score because
-        opens up same pips for opponent teammate to play.
+        Whether action will match previous move of opponent. Expect negative weight.
+        Opponent: 1-3
+        Me:       3-3
+        Return 1
     '''
     def matches_opp_last_move(self, game, player, move):
         domino, side = move
