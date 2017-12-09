@@ -59,7 +59,7 @@ class FeatureAgent:
             while(not is_end_state): 
                 curr_game = deepcopy(game)
                 curr_player = game.curr_player
-                curr_move = self.get_agent_move(game)
+                curr_move = self.get_agent_move(game, self.total_games)
                 print(curr_move)
                 game.move(curr_move)
                 is_end_state = game.is_end_state()
