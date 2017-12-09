@@ -302,7 +302,7 @@ class FeatureAgent:
         num_matches_list[num_matches] = 1
         return num_matches_list
 
-    def total_pip(self, game, hand, player, move):
+    def total_pip(self, game, player, move):
         if move is None: return 0
         return move[0].pip_val
 
@@ -313,8 +313,7 @@ class FeatureAgent:
         last_k_pip = self.last_k_pip(game, player, move)
         is_greedy_move = self.is_greedy_move(game, player, move)
         num_match = self.num_dom_inhand_matches(game, player, move)
-        hand = game.get_player_hand
-        t_pip = self.total_pip(game, hand, player, move)
+        t_pip = self.total_pip(game, player, move)
         num_dom_leftopp = self.num_dom_remaining_leftopp(game, player, move)
         num_dom_rightopp = self.num_dom_remaining_rightopp(game, player, move)
         num_dom_remaining_teammate = self.num_dom_remaining_teammate(game, player,move)
@@ -352,8 +351,34 @@ class FeatureAgent:
                     # print('curr', curr_mem)
                     # print('Reward of sa', curr_mem[4])
                     self.weights += self.learning_rate*(curr_mem[4][player] - self.weights @ sa) # do not consider spap
-        print('Weights', self.weights)
-                        
+        
+        print('Weights:')
+        print('Is greedy move')
+        print(self.weights[0])
+        print('Matches team last move')
+        print(self.weights[1])
+        print('Matches next player last move')
+        print(self.weights[2])
+        print('Do I have the last set of this pip?')
+        print(self.weights[3])
+        print('Matches next opponent\'s last move')
+        print(self.weights[4])
+        print('Number of matches in current hand')
+        print(self.weights[5:12])
+        print('Number of total pips of current domino')
+        print(self.weights[12])
+        print('Number of dominoes left in left opponent\'s hand')
+        print(self.weights[13:20])
+        print('Number of dominoes left in right opponent\'s hand')
+        print(self.weights[20:27])
+        print('Number of dominoes in teammate\'s hand')
+        print(self.weights[27:34])
+        print('Does it match the pass of the next opponent?')
+        print(self.weights[34])
+        print('Does it match the pass of the previous opponent?')
+        print(self.weights[35])
+        print('Does it match the pass of my teammate?')
+        print(self.weights[36])
 
     '''
         Save agent to memory as play against greedy and print states
