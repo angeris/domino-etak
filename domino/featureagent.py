@@ -18,6 +18,8 @@ class FeatureAgent:
         self.won_games = 0
         self.all_games = []
         self.epsilon = 1.0
+        self.num_iters = 10
+
 
     def get_agent_move(self, game, total_games):
         poss_actions = game.get_possible_actions()
@@ -54,46 +56,29 @@ class FeatureAgent:
         for i in range(num_games): # play multiple games
             game = DominosGame()
             is_end_state = game.is_end_state()
-            curr_game = None
-            curr_player = None
-            curr_move = None
             while(not is_end_state): 
-                if curr_game is None:   # first move of game (s,a)
-                    curr_game = deepcopy(game)
-                    curr_player = game.curr_player
-                    curr_move = self.get_agent_move(game, self.total_games)
-                    game.move(curr_move)
-                else:
-                    next_game = deepcopy(game)
-                    next_move = self.get_agent_move(game, self.total_games)
-                    game.move(next_move)
-                    is_end_state = game.is_end_state()  # after  `next_move`
-                    reward = []
-                    if is_end_state:
-                        for player_idx in range(4):
-                            reward.append(game.get_score(player_idx))
-                        # back propagate is_end_state=True and reward to last moves of past 2 players
-                        self.memory[-1][4] = reward
-                        self.memory[-1][3] = True
-                        self.memory[-2][4] = reward
-                        self.memory[-2][3] = True
+                curr_game = deepcopy(game)
+                curr_player = game.curr_player
+                curr_move = self.get_agent_move(game)
+                print(curr_move)
+                game.move(curr_move)
+                is_end_state = game.is_end_state()
+                reward = []
+                if is_end_state:
+                    for player_idx in range(4):
+                        reward.append(game.get_score(player_idx))
+                    # back propagate is_end_state=True and reward to last moves of past 3 players
+                    self.memory[-1][4] = reward
+                    self.memory[-1][3] = True
+                    self.memory[-2][4] = reward
+                    self.memory[-2][3] = True
+                    self.memory[-3][4] = reward
+                    self.memory[-3][3] = True
 
-                        print('Reward', reward)
+                    print('Reward', reward)
 
-                        saspap = [curr_game, curr_player, curr_move, True, reward, next_game, next_move]
-                        self.memory.append(saspap)
-                        spapr = [next_game, game.curr_player, next_move, True, reward, None, None]  # next_move done by game.curr_player ends the game
-                        self.memory.append(spapr)
-                        curr_game = None
-                        curr_player = None
-                        curr_move = None
-                    else:
-                        saspap = [curr_game, curr_player, curr_move, False, [], next_game, next_move]
-                        self.memory.append(saspap)
-                    
-                    curr_game = next_game
-                    curr_player = game.curr_player
-                    curr_move = next_move
+                sar = [curr_game, curr_player, curr_move, is_end_state, reward]
+                self.memory.append(sar)
 
             
     '''
@@ -272,16 +257,31 @@ class FeatureAgent:
                      opp_move, num_match, t_pip, 1]
 
     def train_on_memory(self):
-        for m in self.memory:
-            # print(m)
-            game, player, move, is_end, reward, next_game, next_move = m
-            sa = self.to_one_hot(game, player, move)
-            if not is_end:
-                spap = self.to_one_hot(next_game, player, next_move)
 
-            if is_end:
-                self.weights += self.learning_rate*(reward[player] - self.weights @ sa)
-                continue
+        for it in range(self.num_iters):
+            for perspective_player in range(4):
+                for m in self.memory:
+                    [game, player, move, is_end, reward] = m
+                    print(m)
+                    
+                    curr_mem = [None, None, None, None, None]
 
-            self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
+                    if player == perspective_player:
+                        if curr_game is None:   # first move of game (s,a)
+                            curr_mem = m
+                        else:
+                            sa = self.to_one_hot(curr_mem[0], curr_mem[1], curr_mem[2]) # game, player, move
+                            if not curr_mem[3]:
+                                spap = self.to_one_hot(game, player, move)
+                                curr_mem = m
+
+                            if curr_end:
+                                self.weights += self.learning_rate*(reward[player] - self.weights @ sa)
+                                curr_game = None
+                                curr_player = None
+                                curr_end = None
+                                curr_move = None
+                                continue
+
+                        self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
 
