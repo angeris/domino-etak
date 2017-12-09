@@ -16,34 +16,46 @@ class FeatureAgent:
         pass
 
     def selfplay(self, num_games):
-        agent0Wins = 0
         for i in range(num_games): # play multiple games
             game = DominosGame()
             is_end_state = game.is_end_state()
+            curr_game = None
+            curr_player = None
+            curr_move = None
             while(not is_end_state): 
-                game_c = copy(game)
-                curr_player = game.curr_player
-                best_a = self.getAgentMove(game)  
-                game.move(best_a)
-                game_next = copy(game)
-                is_end_state = game.is_end_state()
-                scores = []
-                if is_end_state:
-                    for player_idx in range(4):
-                        scores.append(game.get_score(player_idx))
-                    # back propogate scores and end state
-                    self.memory[-1][3] = scores
-                    self.memory[-1][2] = True
-                    self.memory[-2][3] = scores
-                    self.memory[-2][2] = True
-                    self.memory[-3][3] = scores
-                    self.memory[-3][2] = True
+                if curr_game is None:   # first move of game (s,a)
+                    curr_game = copy(game)
+                    curr_player = game.curr_player
+                    curr_move = self.getAgentMove(game)
+                else:
+                    next_game = copy(game)
+                    next_move = self.getAgentMove(game)
+                    is_end_state = game.is_end_state()
+                    reward = []
+                    if is_end_state:
+                        for player_idx in range(4):
+                            reward.append(game.get_score(player_idx))
+                        # back propagate is_end_state=True and reward to last moves of past 3 players
+                        self.memory[-1][4] = reward
+                        self.memory[-1][3] = True
+                        self.memory[-2][4] = reward
+                        self.memory[-2][3] = True
+                        self.memory[-3][4] = reward
+                        self.memory[-3][3] = True
 
-                    if scores[0] >= scores[1]:
-                        agent0Wins +=1
-                sa = [game_c, curr_player, best_a, scores, game_next, ###]
-                self.memory.append(sa)
-        print('Agent 0 wins', float(agent0Wins)/num_games)
+                        saspap = [curr_game, curr_player, curr_move, False, [], next_game, next_move]
+                        self.memory.append(saspap)
+                        spapr = [next_game, game.curr_player, next_move, True, reward, None, None]
+                        self.memory.append(spapr)
+                    else:
+                        saspap = [curr_game, curr_player, curr_move, False, [], next_game, next_move]
+                        self.memory.append(saspap)
+                    
+                    curr_game = next_game
+                    curr_player = game.curr_player
+                    curr_move = next_move
+
+            
 
 
     '''
