@@ -107,3 +107,6 @@ venv/
 domino/output.txt
 domino/output.h5
 domino/train_output.txt
+
+*.swp
+
