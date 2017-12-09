@@ -8,9 +8,9 @@ def main():
     agent = FeatureAgent()
     num_games = 10
     for curr_iter in range(NUM_PLAYS):
+        print('Curr_iter', curr_iter)
         agent.selfplay(num_games)
         agent.train_on_memory()
-        print('Curr_iter', curr_iter)
 
 
 '''
