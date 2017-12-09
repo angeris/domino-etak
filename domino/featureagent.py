@@ -83,7 +83,8 @@ class FeatureAgent:
         Return 1
     '''
     def matches_opp_last_move(self, game, player, move):
-        domino, side = move
+        domino = move[0]
+        side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
         if new_end_val == game.ends[0] or new_end_val == game.ends[1]:
             return 1
@@ -97,7 +98,8 @@ class FeatureAgent:
         Returns 1
     '''
     def matches_team_last_move(self, game, player, move):
-        domino, side = move
+        domino = move[0]
+        side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
         if len(game.board) > 2:
             last_team_move = game.board[-2]
@@ -116,7 +118,8 @@ class FeatureAgent:
         Returns 1
     '''
     def matches_next_player_last_move(self, game, player, move):
-        domino, side = move
+        domino = move[0]
+        side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
         if len(game.board) > 3:
             last_team_move = game.board[-3]
