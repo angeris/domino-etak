@@ -1,4 +1,3 @@
-from agent import Agent
 import time
 from featureagent import FeatureAgent
 

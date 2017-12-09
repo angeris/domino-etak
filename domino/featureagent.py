@@ -10,7 +10,7 @@ class FeatureAgent:
         self.discount = .99
         self.learning_rate = 0.01
         self.dimension = 13
-        self.weights = np.array(self.dimension)
+        self.weights = np.zeros(self.dimension)
         self.weights[0] = 1
 
     def get_agent_move(self, game):
@@ -99,7 +99,7 @@ class FeatureAgent:
     def matches_team_last_move(self, game, player, move):
         domino, side = move
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
-        last_team_move = board[-2]
+        last_team_move = game.board[-2]
         if last_team_move:
             last_dom = last_team_move[0]
             if last_dom.fits_val(new_end_val):
@@ -117,7 +117,7 @@ class FeatureAgent:
     def matches_next_player_last_move(self, game, player, move):
         domino, side = move
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
-        last_team_move = board[-3]
+        last_team_move = game.board[-3]
         if last_team_move:
             last_dom = last_team_move[0]
             if last_dom.fits_val(new_end_val):
