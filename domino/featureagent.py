@@ -15,12 +15,43 @@ class FeatureAgent:
         poss_actions = game.get_possible_actions()
         for poss_a in poss_actions:
             domino, side = poss_a
-            
-
         pass
 
     def save_weights(self):
         pass
+
+    def selfplay(self):
+        agent0Wins = 0
+        for i in range(num_games): # play multiple games
+            game = DominosGame()
+            is_end_state = game.is_end_state()
+            while(not is_end_state):    # play game
+                board = copy(game.board)
+                curr_player = game.curr_player
+                curr_player_hand = game.get_player_hand(curr_player)
+                best_a = self.getAgentMove(game, self.total_games)    # pass in total games played so far which is updated when testing against greedy?
+                game.move(best_a)
+                is_end_state = game.is_end_state()
+                scores = []
+                if is_end_state:
+                    for player_idx in range(4):
+                        scores.append(game.get_score(player_idx))
+                    # print('scores', scores)
+                    # back propogate scores and end state
+                    self.memory[-1][3] = scores
+                    self.memory[-1][2] = True
+                    self.memory[-2][3] = scores
+                    self.memory[-2][2] = True
+                    self.memory[-3][3] = scores
+                    self.memory[-3][2] = True
+
+                    if scores[0] >= scores[1]:
+                        agent0Wins +=1
+                # s', a, is_end, scores, hand, curr_player
+                sa = [board, best_a, is_end_state, scores, curr_player_hand, curr_player]
+                self.memory.append(sa)
+        print('Agent 0 wins', float(agent0Wins)/num_games)
+
 
     '''
         Whether action will match previous move of opponent. Expect negative weight.
