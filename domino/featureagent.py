@@ -160,7 +160,6 @@ class FeatureAgent:
     '''
     def matches_team_last_move(self, game, player, move):
         if move is None: return 0
-        print(move)
         domino = move[0]
         side = move[1]
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
@@ -235,7 +234,7 @@ class FeatureAgent:
         num_matches = 0
         curr_hand = game.get_player_hand(player)
         poss_actions = game.get_possible_actions()
-        if curr_hand[0] is not None:
+        if len(curr_hand) > 0 and curr_hand[0] is not None:
             for dom in curr_hand:
                 if face_out_pip == dom[0] or face_out_pip == dom[1]:
                     num_matches += 1
@@ -327,8 +326,8 @@ class FeatureAgent:
                         scores.append(game.get_score(player_idx))
 
                     # back propogate scores and end state
-                    self.memory[-1][3] = scores
-                    self.memory[-1][2] = True
+                    self.memory[-1][4] = scores
+                    self.memory[-1][3] = True
 
                     # print('scores', scores, 'greedyTeam', scores[greedyPlayer], 'agentTeam', scores[greedyPlayer+1])
                     greedy_total += scores[greedyPlayer]
