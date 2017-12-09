@@ -12,18 +12,18 @@ class FeatureAgent:
     def __init__(self, q_maxlen=10000):
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .9
-        self.learning_rate = 1e-4
+        self.learning_rate = 1e-2
         self.dimension = 37
         self.weights = np.zeros(self.dimension)
-        self.weights[0] = 100
+        self.weights[0] = 1
         self.total_games = 0
         self.EPSILON_THRESHOLD = 1
-        self.eps_discount = .99
-        self.min_eps = .005
+        self.eps_discount = .9
+        self.min_eps = .05
         self.won_games = 0
         self.all_games = []
         self.epsilon = 1.0
-        self.num_iters = 10
+        self.num_iters = 2
 
 
     def get_agent_move(self, game, total_games):
@@ -340,7 +340,7 @@ class FeatureAgent:
                             # print('curr', curr_mem)
                             if not curr_end: # not end state
                                 spap = self.to_one_hot(game, player, move)
-                                self.weights += self.learning_rate*(self.weights @ (spap - sa))*sa
+                                self.weights += self.learning_rate*(self.weights @ (self.discount * spap - sa))*sa
                                 curr_mem = m
 
                             else:
