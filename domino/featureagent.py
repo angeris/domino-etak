@@ -23,10 +23,46 @@ class FeatureAgent:
     '''
     def matches_opp_last_move(self, game, player, move):
         domino, side = move
-        new_end = domino[0] if domino[0] == game.ends[side] else domino[1]
-        if new_end == game.ends[0] or new_end == game.ends[1]:
+        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        if new_end_val == game.ends[0] or new_end_val == game.ends[1]:
             return 1
         return 0
+
+    '''
+        Whether action will match what teammate opened up for you. Expect positive weight.
+        Teammate: 2-1
+        Opponent: 1-3
+        Me:       3-2  
+        Returns 1
+    '''
+    def matches_team_last_move(self, game, player, move):
+        domino, side = move
+        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        last_team_move = board[-2]
+        if last_team_move:
+            last_dom = last_team_move[0]
+            if last_dom.fits_val(new_end_val)
+                return 1
+        return 0
+
+    '''
+        Whether action will match next player's (oponent) move. Expect negative weight.
+        Opponent_Next: 4-2
+        Teammate: 2-1
+        Opponent: 1-3
+        Me:       3-4 
+        Returns 1
+    '''
+    def matches_next_player_last_move(self, game, player, move):
+        domino, side = move
+        new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
+        last_team_move = board[-3]
+        if last_team_move:
+            last_dom = last_team_move[0]
+            if last_dom.fits_val(new_end_val)
+                return 1
+        return 0
+
 
 
     def last_k_pip(self, game, player, move):
