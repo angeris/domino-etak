@@ -27,10 +27,12 @@ class FeatureAgent:
                     curr_game = copy(game)
                     curr_player = game.curr_player
                     curr_move = self.getAgentMove(game)
+                    game.move(curr_move)
                 else:
                     next_game = copy(game)
                     next_move = self.getAgentMove(game)
-                    is_end_state = game.is_end_state()
+                    game.move(next_move)
+                    is_end_state = game.is_end_state()  # after  `next_move`
                     reward = []
                     if is_end_state:
                         for player_idx in range(4):
@@ -40,12 +42,10 @@ class FeatureAgent:
                         self.memory[-1][3] = True
                         self.memory[-2][4] = reward
                         self.memory[-2][3] = True
-                        self.memory[-3][4] = reward
-                        self.memory[-3][3] = True
 
-                        saspap = [curr_game, curr_player, curr_move, False, [], next_game, next_move]
+                        saspap = [curr_game, curr_player, curr_move, True, reward, next_game, next_move]
                         self.memory.append(saspap)
-                        spapr = [next_game, game.curr_player, next_move, True, reward, None, None]
+                        spapr = [next_game, game.curr_player, next_move, True, reward, None, None]  # next_move done by game.curr_player ends the game
                         self.memory.append(spapr)
                     else:
                         saspap = [curr_game, curr_player, curr_move, False, [], next_game, next_move]
