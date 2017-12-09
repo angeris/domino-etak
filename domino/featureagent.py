@@ -11,13 +11,15 @@ import pickle as pk
 class FeatureAgent:
     def __init__(self, q_maxlen=10000):
         self.memory = deque(maxlen=q_maxlen)
-        self.discount = .99
-        self.learning_rate = 1e-3
-        self.dimension = 38
+        self.discount = .9
+        self.learning_rate = 1e-4
+        self.dimension = 37
         self.weights = np.zeros(self.dimension)
-        # self.weights[0] = 0
+        self.weights[0] = 100
         self.total_games = 0
-        self.EPSILON_THRESHOLD = 10
+        self.EPSILON_THRESHOLD = 1
+        self.eps_discount = .99
+        self.min_eps = .005
         self.won_games = 0
         self.all_games = []
         self.epsilon = 1.0
@@ -134,8 +136,8 @@ class FeatureAgent:
         print('Agent total: {} | Greedy total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
         if self.total_games % self.EPSILON_THRESHOLD == 0:
-            self.epsilon *= 0.5
-            self.epsilon = max(0.05, self.epsilon)
+            self.epsilon *= self.eps_discount
+            self.epsilon = max(self.min_eps, self.epsilon)
         self.won_games += agent_total > greedy_total
         self.all_games.append(agent_total > greedy_total)
         if len(self.all_games) % 100 == 0:
@@ -325,7 +327,7 @@ class FeatureAgent:
         matches_team_pass = self.matches_team_pass(game, player, move)
         return np.r_[is_greedy_move, team_move, n_player_move, last_k_pip,
                      opp_move, num_match, t_pip, num_dom_leftopp, num_dom_rightopp, num_dom_remaining_teammate, 
-                     matches_opp_pass, matches_opp2_pass, matches_team_pass, 1]
+                     matches_opp_pass, matches_opp2_pass, matches_team_pass]
 
     def train_on_memory(self):
         for it in range(self.num_iters):
@@ -411,7 +413,8 @@ class FeatureAgent:
         print('Agent pip total: {} | Greedy pip total: {}'.format(agent_total, greedy_total))
         self.total_games += 1
         if self.total_games % self.EPSILON_THRESHOLD == 0:
-            self.epsilon *= 0.5
+            self.epsilon *= self.eps_discount
+            self.epsilon = max(self.min_eps, self.epsilon)
         self.won_games += agent_total > greedy_total
         self.all_games.append(agent_total > greedy_total)
         if len(self.all_games) % 100 == 0:
