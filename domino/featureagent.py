@@ -9,7 +9,7 @@ class FeatureAgent:
         self.memory = deque(maxlen=q_maxlen)
         self.discount = .99
         self.learning_rate = 0.01
-        self.dimension = 100
+        self.dimension = 13
         self.weights = np.array(self.dimension)
         self.weights[0] = 1
 
