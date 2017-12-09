@@ -78,7 +78,7 @@ class FeatureAgent:
 
         return remaining_dominoes == 1
 
-    def is_greedy_move(self, game, hand, player, action):
+    def is_greedy_move(self, game, player, move):
         poss_actions = game.get_possible_actions()
         best_a = None
         max_pip_domino = Domino(0,0)
@@ -91,12 +91,12 @@ class FeatureAgent:
             return True
         return False
 
-    def num_dom_inhand_matches(self, game, hand, player, action):
-        board_pip = game.ends[action[1]]
-        if action[0].value[0] == board_pip:
-            face_out_pip = action[0].value[0]
+    def num_dom_inhand_matches(self, game, player, move):
+        board_pip = game.ends[move[1]]
+        if move[0].value[0] == board_pip:
+            face_out_pip = move[0].value[0]
         else:
-            face_out_pip = action[0].value[1]
+            face_out_pip = move[0].value[1]
 
         num_matches = 0
         curr_hand = game.get_player_hand(curr_player)
@@ -113,7 +113,18 @@ class FeatureAgent:
         return action[0].pip_val
 
     def to_one_hot(self, game, player, move):
-        pass
+        opp_move = self.matches_opp_last_move(game, player, move)
+        team_move = self.matches_team_last_move(game, player, move)
+        n_player_move = self.matches_next_player_last_move(game, player, move)
+        last_k_pip = self.last_k_pip(game, player, move)
+        is_greedy_move = self.is_greedy_move(game, player, move)
+        num_match = self.num_dom_inhand_matches(game, player, move)
+        t_pip = self.total_pip(game, player, move)
+
+        return np.r_[opp_move, team_move, n_player_move, last_k_pip,
+                     is_greedy_move, num_match, t_pip]
+
+
 
     def train_on_memory(self):
         for m in self.memory:
@@ -121,7 +132,7 @@ class FeatureAgent:
             sa = to_one_hot(game, player, move)
             spap = to_one_hot(next_game, player, next_move)
 
-            if reward > 0:
+            if is_end:
                 self.weights += self.learning_rate*(reward - self.weights @ sa)
                 continue
 
