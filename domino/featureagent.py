@@ -167,8 +167,8 @@ class FeatureAgent:
         opp_hand = game.get_player_hand((player+1)%4)
         for d in opp_hand:
             if d.fits_val(new_end_val):
-                return 1
-        return 0
+                return 0
+        return 1
 
     def matches_opp_2_pass(self, game, player, move):
         if move is None: return 0
@@ -178,8 +178,8 @@ class FeatureAgent:
         opp_hand = game.get_player_hand((player-1)%4)
         for d in opp_hand:
             if d.fits_val(new_end_val):
-                return 1
-        return 0
+                return 0
+        return 1
 
     def matches_team_pass(self, game, player, move):
         if move is None: return 0
@@ -189,8 +189,8 @@ class FeatureAgent:
         team_hand = game.get_player_hand((player-2)%4)
         for d in team_hand:
             if d.fits_val(new_end_val):
-                return 1
-        return 0
+                return 0
+        return 1
 
     '''
         Whether action will match what teammate opened up for you. Expect positive weight.
