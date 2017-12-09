@@ -99,11 +99,12 @@ class FeatureAgent:
     def matches_team_last_move(self, game, player, move):
         domino, side = move
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
-        last_team_move = game.board[-2]
-        if last_team_move:
-            last_dom = last_team_move[0]
-            if last_dom.fits_val(new_end_val):
-                return 1
+        if len(game.board) > 2:
+            last_team_move = game.board[-2]
+            if last_team_move:
+                last_dom = last_team_move[0]
+                if last_dom.fits_val(new_end_val):
+                    return 1
         return 0
 
     '''
@@ -117,11 +118,12 @@ class FeatureAgent:
     def matches_next_player_last_move(self, game, player, move):
         domino, side = move
         new_end_val = domino[0] if domino[0] == game.ends[side] else domino[1]
-        last_team_move = game.board[-3]
-        if last_team_move:
-            last_dom = last_team_move[0]
-            if last_dom.fits_val(new_end_val):
-                return 1
+        if len(game.board) > 3:
+            last_team_move = game.board[-3]
+            if last_team_move:
+                last_dom = last_team_move[0]
+                if last_dom.fits_val(new_end_val):
+                    return 1
         return 0
 
     def last_k_pip(self, game, player, move):
