@@ -61,6 +61,8 @@ class FeatureAgent:
                         self.memory[-2][4] = reward
                         self.memory[-2][3] = True
 
+                        print('Reward', reward)
+
                         saspap = [curr_game, curr_player, curr_move, True, reward, next_game, next_move]
                         self.memory.append(saspap)
                         spapr = [next_game, game.curr_player, next_move, True, reward, None, None]  # next_move done by game.curr_player ends the game
@@ -202,8 +204,8 @@ class FeatureAgent:
     def train_on_memory(self):
         for m in self.memory:
             game, player, move, is_end, reward, next_game, next_move = m
-            sa = to_one_hot(game, player, move)
-            spap = to_one_hot(next_game, player, next_move)
+            sa = self.to_one_hot(game, player, move)
+            spap = self.to_one_hot(next_game, player, next_move)
 
             if is_end:
                 self.weights += self.learning_rate*(reward - self.weights @ sa)
