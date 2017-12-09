@@ -134,9 +134,11 @@ class FeatureAgent:
 
     def last_k_pip(self, game, player, move):
         remaining_dominoes = 7
-        if not move: return 0
+        if move is None: return 0
         curr_domino = move[0]
         for d in game.board:
+            if d is None:
+                continue
             if curr_domino.fits(d[0]):
                 remaining_dominoes -= 1
 
